@@ -1,14 +1,20 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import requests
 import json
+from datetime import datetime
+import uuid
 
-# Store conversation history
-# Store conversation history with knowledge
-conversation = [
-    {
-        "role": "system",
-        "content": """You are ACE AI, a helpful and knowledgeable assistant.
-        
+app = Flask(__name__)
+app.secret_key = 'your-secret-key-here'  # Change this in production
+
+# Store conversation history per session
+def get_conversation_history():
+    if 'conversation' not in session:
+        session['conversation'] = [
+            {
+                "role": "system",
+                "content": """You are ACE AI, a helpful and knowledgeable assistant.
+                
 Known Profiles:
 1. User (Shubham Rahangdale)
    - From: Bhopal, Madhya Pradesh, India
@@ -40,101 +46,104 @@ Known Profiles:
      • Nagpur: 17/1 Amar Plaza, IT Park Rd, Nagpur – 440022 | +91-95794-37780, +91-99708-50512 | info@prevoyancesolutions.com
      • Mumbai (BKC): Level 11, Platina, C-59, G-Block, Bandra Kurla Complex, Mumbai – 400051 | +91-22-6884-1727
 """
-    }
-]
+            }
+        ]
+    return session['conversation']
 
+def get_settings():
+    if 'settings' not in session:
+        session['settings'] = {
+            "model": "llama3:8b",
+            "num_predict": 250,
+            "temperature": 0.7
+        }
+    return session['settings']
 
-# ANSI colors for nicer output
-BLUE = "\033[94m"
-GREEN = "\033[92m"
-YELLOW = "\033[93m"
-RESET = "\033[0m"
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# Default settings
-settings = {
-    "model": "llama3:8b",   # or "llama3:latest"
-    "num_predict": 250,
-    "temperature": 0.7
-}
-
-def ace_ai_chat(prompt):
-    """Chat with ACE AI using Ollama's API dynamically with memory + settings."""
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_message = request.json.get('message', '')
+    if not user_message:
+        return jsonify({'error': 'No message provided'}), 400
+    
+    conversation = get_conversation_history()
+    settings = get_settings()
+    
+    # Add user message to history
+    conversation.append({"role": "user", "content": user_message})
+    
+    # Prepare the request to Ollama
     url = "http://localhost:11434/api/chat"
     headers = {"Content-Type": "application/json"}
-
-    # Add user message to history
-    conversation.append({"role": "user", "content": prompt})
-
+    
     payload = {
         "model": settings["model"],
         "messages": conversation,
-        "stream": True,
+        "stream": False,
         "options": {
             "num_predict": settings["num_predict"],
             "temperature": settings["temperature"]
         }
     }
-
+    
     try:
-        response = requests.post(url, headers=headers, json=payload, stream=True, timeout=120)
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
+        response.raise_for_status()
+        data = response.json()
+        
+        if "message" in data and "content" in data["message"]:
+            ai_response = data["message"]["content"]
+
+            # ✅ Print in terminal for debugging
+            print(f"\n[User]: {user_message}")
+            print(f"[AI]: {ai_response}\n")
+
+            # Add AI response to conversation history
+            conversation.append({"role": "assistant", "content": ai_response})
+            session['conversation'] = conversation
+            
+            return jsonify({'response': ai_response})
+        else:
+            return jsonify({'error': 'Invalid response from AI'}), 500
+            
     except requests.exceptions.RequestException as e:
-        print(f"\n⚠️ Error connecting to Ollama: {e}")
-        return ""
-
-    output = ""
-    print(f"{GREEN}ACE AI:{RESET}", end=" ", flush=True)
-
-    for line in response.iter_lines():
-        if line:
-            data = json.loads(line.decode("utf-8"))
-            if "message" in data and "content" in data["message"]:
-                chunk = data["message"]["content"]
-                print(chunk, end="", flush=True)
-                output += chunk
-            if data.get("done", False):
-                break
-
-    print()  # newline after response
-
-    # Save ACE AI response to history
-    conversation.append({"role": "assistant", "content": output})
-    return output.strip()
-
-
-# 🔹 Interactive loop with dynamic commands
-print(f"{BLUE}🤖 Welcome to ACE AI Chat (type 'exit' to quit, 'new chat' to reset){RESET}\n")
-
-while True:
-    user_input = input(f"{BLUE}You:{RESET} ")
-
-    if user_input.lower() in ["exit", "quit", "bye"]:
-        print(f"{GREEN}👋 Goodbye! ACE AI signing off.{RESET}")
-        break
-    elif user_input.lower() == "new chat":
-        conversation.clear()
-        print(f"{YELLOW}✨ New conversation started!{RESET}")
-        continue
-    elif user_input.lower().startswith("set model "):
-        settings["model"] = user_input.split("set model ", 1)[1]
-        print(f"{YELLOW}⚙️ Model set to: {settings['model']}{RESET}")
-        continue
-    elif user_input.lower().startswith("set temp "):
-        try:
-            settings["temperature"] = float(user_input.split("set temp ", 1)[1])
-            print(f"{YELLOW}⚙️ Temperature set to: {settings['temperature']}{RESET}")
-        except ValueError:
-            print(f"{YELLOW}⚠️ Invalid temperature value.{RESET}")
-        continue
-    elif user_input.lower().startswith("set tokens "):
-        try:
-            settings["num_predict"] = int(user_input.split("set tokens ", 1)[1])
-            print(f"{YELLOW}⚙️ Max tokens set to: {settings['num_predict']}{RESET}")
-        except ValueError:
-            print(f"{YELLOW}⚠️ Invalid token number.{RESET}")
-        continue
-
-    ace_ai_chat(user_input)
-
-
+        print(f"❌ Request Error: {e}")  # Print error in console
+        return jsonify({'error': f'Error connecting to Ollama: {str(e)}'}), 500
+    except Exception as e:
+        print(f"❌ Unexpected Error: {e}")  # Print error in console
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
     
+
+@app.route('/new_chat', methods=['POST'])
+def new_chat():
+    session.pop('conversation', None)
+    get_conversation_history()  # Reset to initial state
+    return jsonify({'status': 'success'})
+
+@app.route('/settings', methods=['POST'])
+def update_settings():
+    settings = get_settings()
+    data = request.json
+    
+    if 'model' in data:
+        settings['model'] = data['model']
+    if 'temperature' in data:
+        try:
+            settings['temperature'] = float(data['temperature'])
+        except ValueError:
+            return jsonify({'error': 'Temperature must be a number'}), 400
+    if 'num_predict' in data:
+        try:
+            settings['num_predict'] = int(data['num_predict'])
+        except ValueError:
+            return jsonify({'error': 'Number of tokens must be an integer'}), 400
+    
+    session['settings'] = settings
+    return jsonify({'status': 'success', 'settings': settings})
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=80000, debug=True)
