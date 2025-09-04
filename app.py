@@ -53,7 +53,7 @@ Known Profiles:
 def get_settings():
     if 'settings' not in session:
         session['settings'] = {
-            "model": "llama3:8b",
+            "model": "gemma:2b",
             "num_predict": 250,
             "temperature": 0.7
         }
@@ -116,7 +116,6 @@ def chat():
         print(f"❌ Unexpected Error: {e}")  # Print error in console
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
-    
 
 @app.route('/new_chat', methods=['POST'])
 def new_chat():
@@ -146,4 +145,4 @@ def update_settings():
     return jsonify({'status': 'success', 'settings': settings})
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80000, debug=True)
+    app.run(debug=True)

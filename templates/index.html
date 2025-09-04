@@ -10,19 +10,39 @@
 </head>
 <body>
     <div class="container">
-        <div class="sidebar">
+        <!-- Sidebar Toggle Button -->
+        <button id="sidebar-toggle" class="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2>ACE AI</h2>
+                <div class="logo">
+                    <div class="logo-icon">A</div>
+                    <h2>ACE AI</h2>
+                </div>
                 <button id="new-chat-btn" class="new-chat-btn">
                     <i class="fas fa-plus"></i> New Chat
                 </button>
             </div>
-            <div class="chat-history">
-                <!-- Chat history will be populated here -->
+            <div class="chat-history" id="chat-history">
+                <div class="history-title">Recent Conversations</div>
+                <div class="history-items">
+                    <!-- Will be populated dynamically -->
+                </div>
             </div>
             <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name">User</div>
+                        <div class="user-status">Online</div>
+                    </div>
+                </div>
                 <button id="settings-toggle" class="settings-btn">
-                    <i class="fas fa-cog"></i> Settings
+                    <i class="fas fa-cog"></i>
                 </button>
             </div>
         </div>
@@ -30,25 +50,45 @@
         <div class="main-content">
             <div class="chat-container">
                 <div class="chat-header">
-                    <h1>ACE AI Assistant</h1>
-                    <div class="model-info">
-                        <span id="current-model">llama3:8b</span>
+                    <div class="header-content">
+                        <h1>ICICI FAQ</h1>
+                        <div class="model-info">
+                            <span class="model-badge" id="current-model">AI</span>
+                            <span class="status-indicator"></span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn" id="clear-chat-btn" title="Clear Chat">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="messages-container" id="messages-container">
                     <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
                         <h2>Welcome to ACE AI</h2>
                         <p>I'm your helpful AI assistant. How can I help you today?</p>
+                        <div class="suggestions">
+                            <div class="suggestion-chip">Tell me about yourself</div>
+                            <div class="suggestion-chip">What can you help me with?</div>
+                            <div class="suggestion-chip">Explain AI in simple terms</div>
+                        </div>
                     </div>
                 </div>
                 <div class="input-container">
                     <div class="input-wrapper">
-                        <textarea id="message-input" placeholder="Type your message here..." rows="1"></textarea>
+                        <button class="attach-btn">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <textarea id="message-input" placeholder="Message ACE AI..." rows="1"></textarea>
                         <button id="send-btn" class="send-btn">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                     <div class="disclaimer">
+                        <i class="fas fa-info-circle"></i>
                         ACE AI can make mistakes. Consider checking important information.
                     </div>
                 </div>
@@ -59,29 +99,50 @@
         <div id="settings-modal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Settings</h2>
+                    <h2><i class="fas fa-cog"></i> Settings</h2>
                     <span class="close">&times;</span>
                 </div>
                 <div class="modal-body">
                     <div class="setting-group">
-                        <label for="model-select">Model:</label>
-                        <select id="model-select">
-                            <option value="llama3:8b">Llama 3 8B</option>
-                            <option value="llama3:latest">Llama 3 (Latest)</option>
-                            <option value="llama2">Llama 2</option>
-                            <option value="mistral">Mistral</option>
-                        </select>
+                        <label for="model-select">AI Model:</label>
+                        <div class="select-wrapper">
+                            <select id="model-select">
+                                <option value="llama3:8b">Llama 3 8B</option>
+                                <option value="llama3:latest">Llama 3 (Latest)</option>
+                                <option value="llama2">Llama 2</option>
+                                <option value="mistral">Mistral</option>
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
                     </div>
                     <div class="setting-group">
-                        <label for="temperature">Temperature: <span id="temp-value">0.7</span></label>
-                        <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7">
+                        <label for="temperature">Creativity: <span id="temp-value">0.7</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7">
+                            <div class="slider-labels">
+                                <span>Precise</span>
+                                <span>Balanced</span>
+                                <span>Creative</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="setting-group">
-                        <label for="max-tokens">Max Tokens:</label>
+                        <label for="max-tokens">Response Length:</label>
                         <input type="number" id="max-tokens" min="50" max="1000" value="250">
                     </div>
-                    <button id="save-settings" class="save-btn">Save Settings</button>
+                    <div class="modal-actions">
+                        <button class="btn-secondary" id="cancel-settings">Cancel</button>
+                        <button class="btn-primary" id="save-settings">Save Changes</button>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="toast">
+            <div class="toast-content">
+                <i class="fas fa-check-circle"></i>
+                <span class="toast-message">Settings saved successfully!</span>
             </div>
         </div>
     </div>
