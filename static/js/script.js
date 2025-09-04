@@ -132,56 +132,80 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Send message to the server
-    function sendMessage() {
-        const message = messageInput.value.trim();
-        if (!message || isWaitingForResponse) return;
-        
-        // Add user message to chat
-        addMessageToChat('user', message);
-        
-        // Clear input and reset height
-        messageInput.value = '';
-        messageInput.style.height = 'auto';
-        
-        // Disable input and button while processing
-        setInputState(false);
-        
-        // Show typing indicator
-        showTypingIndicator();
-        
-        // Send message to server
-        fetch('/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: message })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+    // Send message to the server (with streaming support)
+function sendMessage() {
+    const message = messageInput.value.trim();
+    if (!message || isWaitingForResponse) return;
+
+    // Add user message to chat
+    addMessageToChat('user', message);
+
+    // Clear input and reset height
+    messageInput.value = '';
+    messageInput.style.height = 'auto';
+
+    // Disable input and button while processing
+    setInputState(false);
+
+    // Show typing indicator
+    showTypingIndicator();
+
+    fetch('/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: message })
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let aiMessage = '';
+
+        // Create assistant message container
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message';
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar ai-avatar';
+        avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(contentDiv);
+
+        // Remove typing indicator and add assistant message box
+        removeTypingIndicator();
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+
+        // Stream tokens
+        function processStream({ done, value }) {
+            if (done) {
+                setInputState(true);
+                return;
             }
-            return response.json();
-        })
-        .then(data => {
-            // Remove typing indicator
-            removeTypingIndicator();
-            
-            if (data.error) {
-                addMessageToChat('error', `Error: ${data.error}`);
-            } else {
-                addMessageToChat('assistant', data.response);
-            }
-            
-            // Re-enable input and button
-            setInputState(true);
-        })
-        .catch(error => {
-            removeTypingIndicator();
-            addMessageToChat('error', `Error: ${error.message}`);
-            setInputState(true);
-        });
-    }
+
+            const chunk = decoder.decode(value, { stream: true });
+            aiMessage += chunk;
+            contentDiv.innerHTML = formatMessage(aiMessage); // live typing effect
+            scrollToBottom();
+
+            return reader.read().then(processStream);
+        }
+
+        return reader.read().then(processStream);
+    }).catch(error => {
+        removeTypingIndicator();
+        addMessageToChat('error', `Error: ${error.message}`);
+        setInputState(true);
+    });
+}
+
     
     // Enable or disable the input fields
     function setInputState(enabled) {
