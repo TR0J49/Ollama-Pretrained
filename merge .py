@@ -67,7 +67,7 @@ def get_settings():
 def initialize_system():
     global df, index, embeddings
     print("📂 Loading data...")
-    df = pd.read_csv("combined_APIs.csv 1.csv")
+    df = pd.read_csv("API Dataset 129.csv")
     df.fillna("", inplace=True)
     print("🔨 Building FAISS index...")
     index, embeddings = build_faiss_index(df)
@@ -243,19 +243,11 @@ No relevant API documentation found. Respond politely that you do not have suffi
 
 # =========================================================================================================
 # Routes
-
-# 1) Index page (renders index.html first)
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# 2) Chatbot page (when user clicks the chat icon on index.html)
-@app.route('/chatbot')
-def chatbot_page():
-    # Renders the chatbot UI (chatbot.html). Make sure chatbot.html uses JS to call POST /chat for messages.
-    return render_template('chatbot.html')
-
-# ----- ICICI Bank Chat (streaming endpoint used by chatbot.html) -----
+# ----- ICICI Bank Chat -----
 @app.route('/chat', methods=['POST'])
 def chat():
     user_message = request.json.get('message', '')
