@@ -9,7 +9,6 @@ from googletrans import Translator, LANGUAGES  # Added for translation support
 import json
 from difflib import SequenceMatcher
 import datetime
-import speech_recognition as sr
 
 # ==================== Flask App ====================
 app = Flask(__name__)
@@ -45,7 +44,9 @@ If you don’t know the answer, politely guide the user to contact ICICI Bank cu
 ⚡ Identity Rule:
 If the user asks "Who built you?" or "Who made you?", 
 always answer:
-"I was built by  AI of ICICI Bank.
+"I was built by Shubham Rahangdale, an AI & ML enthusiast from Bhopal, Madhya Pradesh, India.
+He is pursuing B.Tech in Artificial Intelligence and Machine Learning (Final year),
+Founder of Neuro Tech Enclave Pvt Ltd. 
 (Current system time: {current_time})"
 Otherwise, act as a normal helpful assistant.
 """
@@ -66,7 +67,7 @@ def get_settings():
 def initialize_system():
     global df, index, embeddings
     print("📂 Loading data...")
-    df = pd.read_csv("combined_APIs.csv 1.csv")
+    df = pd.read_csv("API Dataset 129.csv")
     df.fillna("", inplace=True)
     print("🔨 Building FAISS index...")
     index, embeddings = build_faiss_index(df)
@@ -242,39 +243,11 @@ No relevant API documentation found. Respond politely that you do not have suffi
 
 # =========================================================================================================
 # Routes
-
-# 1) Index page (renders index.html first)
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# 2) Chatbot page (when user clicks the chat icon on index.html)
-@app.route('/chatbot')
-def chatbot_page():
-    # Renders the chatbot UI (chatbot.html). Make sure chatbot.html uses JS to call POST /chat for messages.
-    return render_template('chatbot.html')
-
-# ----- ICICI Bank Chat (streaming endpoint used by chatbot.html) -----
-@app.route('/listen', methods=['GET'])
-def listen():
-    recognizer = sr.Recognizer()
-    try:
-        with sr.Microphone() as source:
-            print("🎤 Speak now...")
-            recognizer.adjust_for_ambient_noise(source)
-            audio = recognizer.listen(source)
-            print("✅ Recording stopped")
-        result_text = recognizer.recognize_google(audio)
-        print(f"📝 Recognized Text: {result_text}")
-        return jsonify({"text": result_text})
-    except sr.UnknownValueError:
-        return jsonify({"error": "❌ Could not understand audio"}), 400
-    except sr.RequestError as e:
-        return jsonify({"error": f"❌ Google Speech API unavailable: {e}"}), 500
-    except Exception as e:
-        return jsonify({"error": f"❌ Unexpected error: {e}"}), 500
-
-
+# ----- ICICI Bank Chat -----
 @app.route('/chat', methods=['POST'])
 def chat():
     user_message = request.json.get('message', '')

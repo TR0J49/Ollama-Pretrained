@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sendMessage();
             }
         });
+
         
         // Auto-resize textarea
         messageInput.addEventListener('input', function() {
@@ -125,6 +126,50 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    // Add this to your setupEventListeners function
+document.getElementById('mic-btn').addEventListener('click', toggleVoiceInput);
+
+// Add this function to handle voice input
+function toggleVoiceInput() {
+    const micBtn = document.getElementById('mic-btn');
+    const messageInput = document.getElementById('message-input');
+    
+    if (micBtn.classList.contains('listening')) {
+        // Stop listening
+        micBtn.classList.remove('listening');
+        micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        // Add your stop listening logic here
+    } else {
+        // Start listening
+        micBtn.classList.add('listening');
+        micBtn.innerHTML = '<i class="fas fa-circle"></i>';
+        
+        // Call the backend /listen endpoint
+        fetch('/listen', {
+            method: 'GET'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.text) {
+                messageInput.value = data.text;
+                messageInput.focus();
+                messageInput.dispatchEvent(new Event('input', { bubbles: true }));
+            } else if (data.error) {
+                showToast(data.error, 'error');
+            }
+            
+            // Reset mic button
+            micBtn.classList.remove('listening');
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        })
+        .catch(error => {
+            console.error('Voice recognition error:', error);
+            showToast('Voice recognition failed', 'error');
+            micBtn.classList.remove('listening');
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        });
+    }
+}
     
     // Toggle sidebar visibility on mobile
     function toggleSidebar() {
