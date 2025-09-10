@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, Response, stream_with_context
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import requests
 import numpy as np
@@ -8,14 +8,10 @@ import re
 from googletrans import Translator, LANGUAGES  # Added for translation support
 import json
 from difflib import SequenceMatcher
-import datetime
-import speech_recognition as sr
 
-# ==================== Flask App ====================
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'
 
-# ==================== Global Components ====================
+# Initialize components
 print("🔄 Loading semantic model...")
 model = SentenceTransformer("all-MiniLM-L6-v2")
 df = None
@@ -31,51 +27,22 @@ SUPPORTED_LANGUAGES = {
     # Add more languages as needed
 }
 
-# ==================== Conversation System (ACE AI) ====================
-def get_conversation_history():
-    if 'conversation' not in session:
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        session['conversation'] = [
-            {
-                "role": "system",
-                "content": f"""You are ACE AI, an ICICI Bank FAQ Assistant.  
-You answer queries related to ICICI Bank services, accounts, credit cards, loans, net banking, UPI, and customer support.  
-If you don’t know the answer, politely guide the user to contact ICICI Bank customer care.
-
-⚡ Identity Rule:
-If the user asks "Who built you?" or "Who made you?", 
-always answer:
-"I was built by  AI of ICICI Bank.
-(Current system time: {current_time})"
-Otherwise, act as a normal helpful assistant.
-"""
-            }
-        ]
-    return session['conversation']
-
-def get_settings():
-    if 'settings' not in session:
-        session['settings'] = {
-            "model": "gemma:2b",
-            "num_predict": 999999,
-            "temperature": 0.7
-        }
-    return session['settings']
-
-# ==================== API Search System ====================
+# Load data and build index
 def initialize_system():
     global df, index, embeddings
     print("📂 Loading data...")
-    df = pd.read_csv("combined_APIs.csv 1.csv")
+    df = pd.read_csv("API Dataset 129.csv")
     df.fillna("", inplace=True)
     print("🔨 Building FAISS index...")
     index, embeddings = build_faiss_index(df)
 
+# 🔍 Preprocess user query
 def preprocess_query(query):
     query = query.lower()
     query = re.sub(r"[^a-zA-Z0-9\s]", "", query)
     return query.strip()
 
+# 🔍 Build FAISS index
 def build_faiss_index(df):
     corpus = (df['Intent'].fillna('') + " " + df['API Name'].fillna('') + " " +
               df['Request Packet(s)'].fillna('') + " " + df['Response Packets']).tolist()
@@ -85,6 +52,7 @@ def build_faiss_index(df):
     index.add(np.array(embeddings).astype('float32'))
     return index, embeddings
 
+# 🌍 Detect and translate query to English
 def process_user_query(query):
     try:
         detected = translator.detect(query)
@@ -99,6 +67,7 @@ def process_user_query(query):
         print(f"Translation error: {e}")
         return query, 'english'
 
+# 🌍 Translate response to user's language
 def translate_response(response, target_lang):
     if target_lang == 'english':
         return response
@@ -111,6 +80,7 @@ def translate_response(response, target_lang):
         print(f"Response translation error: {e}")
         return response + "\n\n(Note: Could not translate response to your language)"
 
+# ✅ Extract attributes from Request Packet
 def extract_attributes(request_packet_text):
     try:
         data = json.loads(request_packet_text)
@@ -118,9 +88,11 @@ def extract_attributes(request_packet_text):
     except:
         return re.findall(r'"(\w+)"\s*:', request_packet_text)
 
+# ✅ Fuzzy match function
 def fuzzy_match(a, b, threshold=0.7):
     return SequenceMatcher(None, a.lower(), b.lower()).ratio() >= threshold
 
+# ✅ Calculate attribute match across all fields
 def calculate_attribute_match(query_tokens, attributes):
     match_count = 0
     for token in query_tokens:
@@ -131,6 +103,7 @@ def calculate_attribute_match(query_tokens, attributes):
                 match_count += 1  # Fuzzy match weighted lower
     return match_count
 
+# ✅ Retrieve relevant context with multi-attribute matching and weighted ranking
 def retrieve_relevant_context(user_query, max_results=10, threshold=1.2):
     query_tokens = user_query.split()
 
@@ -143,6 +116,7 @@ def retrieve_relevant_context(user_query, max_results=10, threshold=1.2):
         if d <= threshold:
             row = df.iloc[i]
 
+            # ✅ Collect attributes from multiple sources
             request_attrs = extract_attributes(row.get('Request Packet(s)', ''))
             extra_attrs = [
                 row.get('API Name', ''),
@@ -151,18 +125,22 @@ def retrieve_relevant_context(user_query, max_results=10, threshold=1.2):
             ]
             all_attributes = request_attrs + extra_attrs
 
+            # ✅ Calculate attribute match count
             match_count = calculate_attribute_match(query_tokens, all_attributes)
 
+            # ✅ Weighted score: attributes > semantic similarity
             weighted_score = (match_count * 2) + (1 / (d + 0.0001))
 
             valid_results.append((i, d, match_count, weighted_score))
 
+    # ✅ Sort results by weighted score
     valid_results.sort(key=lambda x: x[3], reverse=True)
     valid_results = valid_results[:max_results]
 
     if not valid_results:
         return None
 
+    # ✅ Build context for Gemini
     context = ""
     for idx, dist, match_count, score in valid_results:
         row = df.iloc[idx]
@@ -180,7 +158,7 @@ Weighted Score: {round(score, 4)}
 
     return context.strip()
 
-# ==================== Generate response using Gemini API (exact as you provided) ====================
+# ✅ Generate response using Gemini API
 def generate_journey_with_gemini(user_query, context, user_language='english'):
     api_key = "AIzaSyAjeFulYtt6sCt25p-hUklAYVw9MbKGk5Q"
     endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
@@ -240,119 +218,12 @@ No relevant API documentation found. Respond politely that you do not have suffi
     else:
         return f"❌ Gemini API Error {response.status_code}: {response.text}"
 
-# =========================================================================================================
+#================================================================================================================================================
 # Routes
-
-# 1) Index page (renders index.html first)
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# 2) Chatbot page (when user clicks the chat icon on index.html)
-@app.route('/chatbot')
-def chatbot_page():
-    # Renders the chatbot UI (chatbot.html). Make sure chatbot.html uses JS to call POST /chat for messages.
-    return render_template('chatbot.html')
-
-# ----- ICICI Bank Chat (streaming endpoint used by chatbot.html) -----
-@app.route('/listen', methods=['GET'])
-def listen():
-    recognizer = sr.Recognizer()
-    try:
-        with sr.Microphone() as source:
-            print("🎤 Speak now...")
-            recognizer.adjust_for_ambient_noise(source)
-            audio = recognizer.listen(source)
-            print("✅ Recording stopped")
-        result_text = recognizer.recognize_google(audio)
-        print(f"📝 Recognized Text: {result_text}")
-        return jsonify({"text": result_text})
-    except sr.UnknownValueError:
-        return jsonify({"error": "❌ Could not understand audio"}), 400
-    except sr.RequestError as e:
-        return jsonify({"error": f"❌ Google Speech API unavailable: {e}"}), 500
-    except Exception as e:
-        return jsonify({"error": f"❌ Unexpected error: {e}"}), 500
-
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    user_message = request.json.get('message', '')
-    if not user_message:
-        return jsonify({'error': 'No message provided'}), 400
-
-    conversation = get_conversation_history()
-    settings = get_settings()
-    print("settings....", settings)
-
-    # Add user message to history
-    conversation.append({"role": "user", "content": user_message})
-
-    url = "http://localhost:11434/api/chat"
-    headers = {"Content-Type": "application/json"}
-    payload = {
-        "model": settings["model"],
-        "messages": conversation,
-        "stream": True,   # ✅ streaming enabled
-        "options": {
-            "num_predict": settings["num_predict"],
-            "temperature": settings["temperature"]
-        }
-    }
-
-    def generate():
-        try:
-            with requests.post(url, headers=headers, json=payload, stream=True) as r:
-                r.raise_for_status()
-                full_response = ""
-                for line in r.iter_lines():
-                    if line:
-                        data = json.loads(line.decode("utf-8"))
-                        if "message" in data and "content" in data["message"]:
-                            token = data["message"]["content"]
-                            full_response += token
-                            yield token  # ✅ Send each token to client in real-time
-
-                # save conversation
-                conversation.append({"role": "assistant", "content": full_response})
-                session['conversation'] = conversation
-
-        except Exception as e:
-            yield f"\n[Error]: {str(e)}"
-
-    return Response(stream_with_context(generate()), mimetype='text/plain')
-
-@app.route('/new_chat', methods=['POST'])
-def new_chat():
-    session.pop('conversation', None)
-    get_conversation_history()
-    print("new_chat")
-    return jsonify({'status': 'success'})
-
-@app.route('/settings', methods=['POST'])
-def update_settings():
-    settings = get_settings()
-    print("settings", settings)
-    data = request.json
-    print("data")
-
-    if 'model' in data:
-        settings['model'] = data['model']
-    if 'temperature' in data:
-        try:
-            settings['temperature'] = float(data['temperature'])
-        except ValueError:
-            return jsonify({'error': 'Temperature must be a number'}), 400
-    if 'num_predict' in data:
-        try:
-            settings['num_predict'] = int(data['num_predict'])
-        except ValueError:
-            return jsonify({'error': 'Number of tokens must be an integer'}), 400
-
-    session['settings'] = settings
-    return jsonify({'status': 'success', 'settings': settings})
-
-# ----- API Search -----
 @app.route('/ask', methods=['POST'])
 def ask():
     user_query = request.form['query']

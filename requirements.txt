@@ -1,0 +1,10 @@
+Flask==3.0.3
+pandas==2.2.2
+requests==2.32.3
+numpy==1.26.4
+sentence-transformers==2.7.0
+faiss-cpu==1.8.0
+gunicorn==22.0.0
+googletrans==4.0.0-rc1
+httpx==0.13.3
+httpcore==0.9.1

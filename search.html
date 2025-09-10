@@ -12,7 +12,7 @@
     <style>
         :root { 
             --primary:#af232a; 
-            --primary-light:#ff8a8a; 
+            --primary-light:#fe9b9b; 
             --accent:#fd79a8; 
             --dark:#1a1a2e; 
             --light:#ffffff; 
@@ -874,9 +874,6 @@
             background: linear-gradient(90deg, var(--gray) 25%, rgba(108,92,231,.1) 50%, var(--gray) 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
-            height: 20px;
-            border-radius: 4px;
-            margin-bottom: 10px;
         }
         
         @keyframes shimmer {
@@ -908,105 +905,6 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #fff;
-        }
-        
-        /* Chatbot Icon Styles */
-        .chatbot-icon {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            animation: pulse 2s infinite;
-        }
-        
-        .chatbot-icon:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-        }
-        
-        .chatbot-icon i {
-            font-size: 28px;
-        }
-        
-        .chatbot-tooltip {
-            position: absolute;
-            bottom: 85px;
-            right: 10px;
-            background: var(--dark);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .chatbot-icon:hover .chatbot-tooltip {
-            opacity: 1;
-            visibility: visible;
-            bottom: 75px;
-        }
-        
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(231, 92, 97, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 15px rgba(231, 92, 97, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(231, 92, 97, 0);
-            }
-        }
-        
-        /* Responsive chatbot icon */
-        @media (max-width: 768px) {
-            .chatbot-icon {
-                width: 60px;
-                height: 60px;
-                bottom: 20px;
-                right: 20px;
-            }
-            
-            .chatbot-icon i {
-                font-size: 24px;
-            }
-            
-            .chatbot-tooltip {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .chatbot-icon {
-                width: 50px;
-                height: 50px;
-                bottom: 15px;
-                right: 15px;
-            }
-            
-            .chatbot-icon i {
-                font-size: 20px;
-            }
-            
-            .chatbot-tooltip {
-                display: none;
-            }
         }
     </style>
 </head>
@@ -1053,12 +951,6 @@
         <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
-
-<!-- Chatbot Icon -->
-<a href="/chatbot" class="chatbot-icon">
-    <i class="fas fa-robot"></i>
-    <div class="chatbot-tooltip">Chat with our AI Assistant</div>
-</a>
 
 <!-- Full Screen API Modal -->
 <div class="api-modal" id="api-modal">
@@ -1139,9 +1031,10 @@ $(document).ready(function(){
       success: function(response) {
         hideTypingIndicator();
         if (response.response && response.response.includes("API Name:")) {
-            // Parse API response and display in cards
-            const apiCards = parseApiResponse(response.response);
-            addMessage(renderApiGallery(apiCards, userInput), 'bot');
+            console.log('response.response',response.response)
+          // Parse API response and display in cards
+          const apiCards = parseApiResponse(response.response);
+          addMessage(renderApiGallery(apiCards, userInput), 'bot');
         } else {
           // Regular text response
           addMessage(response.response, 'bot');
@@ -1161,14 +1054,20 @@ $(document).ready(function(){
   function parseApiResponse(responseText) {
     const apiSections = responseText.split(/(?=API Name:)/g);
     const apiCards = [];
+    console.log('apiCards',apiCards)
     
     apiSections.forEach(section => {
       if (!section.trim()) return;
       
-      // Extract API information using regex
+      // Extract API information using regex - UPDATED FOR YOUR BACKEND FORMAT
       const apiNameMatch = section.match(/API Name:\s*(.*?)(?=\n|$)/i);
       const purposeMatch = section.match(/Purpose:\s*(.*?)(?=\n|$)/i);
-      const urlMatch = section.match(/URL.*?:\s*([\s\S]*?)(?=Required Request Attributes:|Request Body:|Response Body:|Implementation Steps:|$)/i);
+      console.log('purposeMatch',purposeMatch)
+        
+      const urlMatch = section.match(/URL:\s*([\s\S]*?)(?=\n\s*\n|\n\d+\.|$)/i);
+      const urlBlock = urlMatch ? urlMatch[1] : '';
+      const urls = urlBlock.match(/https?:\/\/[^\s`*]+/g) || [];
+      console.log('urlMatch',urlMatch)
       const requestAttrsMatch = section.match(/Required Request Attributes:\s*([\s\S]*?)(?=Request Body:|Response Body:|Implementation Steps:|$)/i);
       const requestBodyMatch = section.match(/Request Body.*?:\s*([\s\S]*?)(?=Response Body:|Implementation Steps:|$)/i);
       const responseBodyMatch = section.match(/Response Body.*?:\s*([\s\S]*?)(?=Implementation Steps:|$)/i);
@@ -1176,22 +1075,21 @@ $(document).ready(function(){
       const attributesRelationMatch = section.match(/How the matched attributes relate to the user query:\s*([\s\S]*?)(?=Implementation Steps:|$)/i);
       
       if (apiNameMatch) {
-        const urlBlock = urlMatch ? urlMatch[1] : '';
-        const urls = urlBlock.match(/https?:\/\/[^\s`*]+/g) || [];
-        
         apiCards.push({
           name: apiNameMatch[1].trim(),
           purpose: purposeMatch ? purposeMatch[1].trim() : 'No purpose provided',
           url: urls.length ? urls.join('<br>') : 'No URL found',
+          endpoint: '', // Your backend doesn't seem to provide this directly
           request: requestBodyMatch ? requestBodyMatch[1].trim() : '',
           response: responseBodyMatch ? responseBodyMatch[1].trim() : '',
           requestAttributes: requestAttrsMatch ? requestAttrsMatch[1].trim() : '',
           implementation: implementationMatch ? implementationMatch[1].trim() : '',
           attributesRelation: attributesRelationMatch ? attributesRelationMatch[1].trim() : '',
-          relevance: 0.95,
+          relevance: 0.95, // Default high relevance since backend already ranked them
           icon: getApiIcon(apiNameMatch[1].trim())
         });
       }
+      
     });
     
     return apiCards;
@@ -1261,6 +1159,7 @@ $(document).ready(function(){
           <h5>${api.name}</h5>
           <p>${api.purpose}</p>
           <div class="api-actions">
+            
             <button class="btn view-fullscreen-btn" data-api-index="${index}">
               <i class="fa-solid fa-expand me-2"></i>View Details
             </button>
@@ -1321,12 +1220,7 @@ $(document).ready(function(){
       </div>
       ` : ''}
       
-      ${api.attributesRelation ? `
-      <div class="detail-section">
-        <h6><span class="section-icon"><i class="fa-solid fa-link"></i></span>Attribute Relevance</h6>
-        <p>${api.attributesRelation}</p>
-      </div>
-      ` : ''}
+      
       
       ${api.implementation ? `
       <div class="detail-section">
@@ -1402,6 +1296,25 @@ $(document).ready(function(){
     }
   }
 
+  // Enhanced click handler for API cards
+  $('#chat-body').on('click','.view-api-btn',function(){
+    const apiName=$(this).data('api-name');
+    const target=$(this).data('target');
+    const $collapse=$(target);
+    const $btn = $(this);
+    
+    $collapse.collapse('toggle');
+
+    // Update button text based on collapse state
+    $collapse.on('shown.bs.collapse', function() {
+      $btn.html('<i class="fa-solid fa-eye-slash me-2"></i>Hide Details');
+    });
+    
+    $collapse.on('hidden.bs.collapse', function() {
+      $btn.html('<i class="fa-solid fa-eye me-2"></i>View Details');
+    });
+  });
+  
   // Full screen view handler
   $('#chat-body').on('click','.view-fullscreen-btn',function(){
     const apiIndex = $(this).data('api-index');
@@ -1452,6 +1365,7 @@ $(document).ready(function(){
       const $collapse = $(this);
       if(!$collapse.hasClass('show')) {
         $collapse.collapse('show');
+        $collapse.prev().find('.view-api-btn').html('<i class="fa-solid fa-eye-slash me-2"></i>Hide Details');
       }
     });
   });
@@ -1460,6 +1374,7 @@ $(document).ready(function(){
     const $gallery = $(this).closest('.message');
     $gallery.find('.api-card .collapse.show').each(function() {
       $(this).collapse('hide');
+      $(this).prev().find('.view-api-btn').html('<i class="fa-solid fa-eye me-2"></i>View Details');
     });
   });
 
