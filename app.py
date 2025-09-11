@@ -37,18 +37,29 @@ def get_conversation_history():
         session['conversation'] = [
             {
                 "role": "system",
-                "content": f"""You are ACE AI, an ICICI Bank FAQ Assistant.  
-You answer queries related to ICICI Bank services, accounts, credit cards, loans, net banking, UPI, and customer support.  
-If you don’t know the answer, politely guide the user to contact ICICI Bank customer care.
+                "content": f"""You are ACE AI, a highly advanced AI assistant capable of answering **any question**.  
 
-⚡ Identity Rule:
-If the user asks "Who built you?" or "Who made you?", 
-always answer:
-"I was built by Shubham Rahangdale, an AI & ML enthusiast from Bhopal, Madhya Pradesh, India.
-He is pursuing B.Tech in Artificial Intelligence and Machine Learning (Final year),
-Founder of Neuro Tech Enclave Pvt Ltd. 
-(Current system time: {current_time})"
-Otherwise, act as a normal helpful assistant.
+You serve multiple purposes:  
+1️⃣ **Customer Support:** Answer queries related to ICICI Bank services, accounts, credit cards, loans, net banking, UPI, and customer support.  
+2️⃣ **Business Insight:** Provide business, financial, or strategic information.  
+3️⃣ **Technical Guidance:** Explain banking technology, AI/ML concepts, programming, and digital solutions.  
+4️⃣ **General Knowledge:** Answer questions from any domain like science, technology, history, or culture.  
+
+⚡ **Rules:**  
+- Always provide **complete, detailed, and structured answers**. Include examples, reasoning steps, and explanations when relevant.  
+- Adapt your tone to user intent: casual, professional, technical, or advisory.  
+- If unsure, politely guide the user to consult an expert or official source.  
+- If the user asks **"Who built you?"** or **"Who made you?"**, always answer:  
+  "I was built by Shubham Rahangdale, an AI & ML enthusiast from Bhopal, Madhya Pradesh, India.  
+  He is pursuing B.Tech in Artificial Intelligence and Machine Learning (Final year),  
+  Founder of Neuro Tech Enclave Pvt Ltd.  
+  (Current system time: {current_time})"  
+
+🔹 **LLM Behavior:**  
+- Think step-by-step before answering.  
+- Use bullet points, numbered lists, tables, or headings for clarity.  
+- Provide **long-form reasoning and detailed insights**, not just short answers.  
+- Be dynamic, adaptive, and informative for any type of question.
 """
             }
         ]
@@ -57,9 +68,11 @@ Otherwise, act as a normal helpful assistant.
 def get_settings():
     if 'settings' not in session:
         session['settings'] = {
-            "model": "gemma:2b",
-            "num_predict": 999999,
-            "temperature": 0.7
+            "model": "gemma:7b",       # Bigger model for LLM-like capability
+            "num_predict": 2000,       # Max tokens per response
+            "temperature": 0.7,        # Slight creativity
+            "top_p": 0.9,              # More diverse output
+            "stop": None               # Let model finish full response
         }
     return session['settings']
 
@@ -181,7 +194,7 @@ Weighted Score: {round(score, 4)}
 
     return context.strip()
 
-# ==================== Generate response using Gemini API (exact as you provided) ====================
+# ==================== Generate response using Gemini API ====================
 def generate_journey_with_gemini(user_query, context, user_language='english'):
     api_key = "AIzaSyAjeFulYtt6sCt25p-hUklAYVw9MbKGk5Q"
     endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
@@ -226,9 +239,9 @@ No relevant API documentation found. Respond politely that you do not have suffi
 """
 
     data = {
-        "contents": [{
+        "contents": [ {
             "parts": [{"text": prompt}]
-        }]
+        } ]
     }
 
     response = requests.post(endpoint, headers=headers, json=data)
@@ -243,19 +256,14 @@ No relevant API documentation found. Respond politely that you do not have suffi
 
 # =========================================================================================================
 # Routes
-
-# 1) Index page (renders index.html first)
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# 2) Chatbot page (when user clicks the chat icon on index.html)
 @app.route('/chatbot')
 def chatbot_page():
-    # Renders the chatbot UI (chatbot.html). Make sure chatbot.html uses JS to call POST /chat for messages.
     return render_template('chatbot.html')
 
-# ----- ICICI Bank Chat (streaming endpoint used by chatbot.html) -----
 @app.route('/chat', methods=['POST'])
 def chat():
     user_message = request.json.get('message', '')
@@ -266,7 +274,6 @@ def chat():
     settings = get_settings()
     print("settings....", settings)
 
-    # Add user message to history
     conversation.append({"role": "user", "content": user_message})
 
     url = "http://localhost:11434/api/chat"
@@ -274,7 +281,7 @@ def chat():
     payload = {
         "model": settings["model"],
         "messages": conversation,
-        "stream": True,   # ✅ streaming enabled
+        "stream": True,
         "options": {
             "num_predict": settings["num_predict"],
             "temperature": settings["temperature"]
@@ -292,9 +299,8 @@ def chat():
                         if "message" in data and "content" in data["message"]:
                             token = data["message"]["content"]
                             full_response += token
-                            yield token  # ✅ Send each token to client in real-time
+                            yield token
 
-                # save conversation
                 conversation.append({"role": "assistant", "content": full_response})
                 session['conversation'] = conversation
 
@@ -333,7 +339,6 @@ def update_settings():
     session['settings'] = settings
     return jsonify({'status': 'success', 'settings': settings})
 
-# ----- API Search -----
 @app.route('/ask', methods=['POST'])
 def ask():
     user_query = request.form['query']
@@ -364,3 +369,4 @@ initialize_system()
 
 if __name__ == '__main__':
     app.run(debug=True, port=9000, host='0.0.0.0')
+
