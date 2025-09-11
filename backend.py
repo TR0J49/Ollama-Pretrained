@@ -1,30 +1,18 @@
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.templating import Jinja2Templates
+from flask import Flask, render_template, request, jsonify, session, Response, stream_with_context
 import pandas as pd
 import requests
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import faiss
 import re
-from googletrans import Translator
+from googletrans import Translator, LANGUAGES  # Added for translation support
 import json
 from difflib import SequenceMatcher
 import datetime
-import asyncio
 
-# ==================== FastAPI App ====================
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-
-# Allow CORS for frontend usage
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"]
-)
+# ==================== Flask App ====================
+app = Flask(__name__)
+app.secret_key = 'your-secret-key-here'
 
 # ==================== Global Components ====================
 print("🔄 Loading semantic model...")
@@ -42,18 +30,14 @@ SUPPORTED_LANGUAGES = {
     # Add more languages as needed
 }
 
-# Session simulation
-session_store = {}
-
 # ==================== Conversation System (ACE AI) ====================
-def get_conversation_history(session_id):
-    if session_id not in session_store:
+def get_conversation_history():
+    if 'conversation' not in session:
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        session_store[session_id] = {
-            "conversation": [
-                {
-                    "role": "system",
-                    "content": f"""You are ACE AI, a powerful Large Language Model (LLM) assistant.  
+        session['conversation'] = [
+            {
+                "role": "system",
+                "content": f"""You are ACE AI, a powerful Large Language Model (LLM) assistant.  
 You are **not restricted to any single domain** – you can answer questions from **technology, coding, error debugging, APIs, artificial intelligence, banking, finance, education, science, history, health, and more**.  
 
 Your role:  
@@ -64,19 +48,19 @@ Your role:
 
 (Current system time: {current_time})
 """
-                }
-            ],
-            "settings": {
-                "model": "gemma:2b",
-                "num_predict": 999999,
-                "temperature": 0.7
             }
-        }
-    return session_store[session_id]["conversation"]
+        ]
+    return session['conversation']
 
-def get_settings(session_id):
-    get_conversation_history(session_id)
-    return session_store[session_id]["settings"]
+
+def get_settings():
+    if 'settings' not in session:
+        session['settings'] = {
+            "model": "gemma:2b",
+            "num_predict": 999999,
+            "temperature": 0.7
+        }
+    return session['settings']
 
 # ==================== API Search System ====================
 def initialize_system():
@@ -256,25 +240,26 @@ No relevant API documentation found. Respond politely that you do not have suffi
     else:
         return f"❌ Gemini API Error {response.status_code}: {response.text}"
 
-# ==================== Routes ====================
-@app.get("/")
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+# =========================================================================================================
+# Routes
 
-@app.get("/chatbot")
-async def chatbot_page(request: Request):
-    return templates.TemplateResponse("chatbot.html", {"request": request})
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-@app.post("/chat")
-async def chat(request: Request):
-    data = await request.json()
-    user_message = data.get("message", "")
+@app.route('/chatbot')
+def chatbot_page():
+    return render_template('chatbot.html')
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_message = request.json.get('message', '')
     if not user_message:
-        raise HTTPException(status_code=400, detail="No message provided")
+        return jsonify({'error': 'No message provided'}), 400
 
-    session_id = request.client.host
-    conversation = get_conversation_history(session_id)
-    settings = get_settings(session_id)
+    conversation = get_conversation_history()
+    settings = get_settings()
+    print("settings....", settings)
 
     conversation.append({"role": "user", "content": user_message})
 
@@ -290,7 +275,7 @@ async def chat(request: Request):
         }
     }
 
-    async def generate():
+    def generate():
         try:
             with requests.post(url, headers=headers, json=payload, stream=True) as r:
                 r.raise_for_status()
@@ -301,26 +286,27 @@ async def chat(request: Request):
                         if "message" in data and "content" in data["message"]:
                             token = data["message"]["content"]
                             full_response += token
-                            yield token.encode("utf-8")
-            conversation.append({"role": "assistant", "content": full_response})
-            session_store[session_id]["conversation"] = conversation
+                            yield token
+
+                conversation.append({"role": "assistant", "content": full_response})
+                session['conversation'] = conversation
+
         except Exception as e:
-            yield f"\n[Error]: {str(e)}".encode("utf-8")
+            yield f"\n[Error]: {str(e)}"
 
-    return StreamingResponse(generate(), media_type="text/plain")
+    return Response(stream_with_context(generate()), mimetype='text/plain')
 
-@app.post("/new_chat")
-async def new_chat(request: Request):
-    session_id = request.client.host
-    session_store.pop(session_id, None)
-    get_conversation_history(session_id)
-    return JSONResponse({"status": "success"})
+@app.route('/new_chat', methods=['POST'])
+def new_chat():
+    session.pop('conversation', None)
+    get_conversation_history()
+    print("new_chat")
+    return jsonify({'status': 'success'})
 
-@app.post("/settings")
-async def update_settings(request: Request):
-    session_id = request.client.host
-    settings = get_settings(session_id)
-    data = await request.json()
+@app.route('/settings', methods=['POST'])
+def update_settings():
+    settings = get_settings()
+    data = request.json
 
     if 'model' in data:
         settings['model'] = data['model']
@@ -328,38 +314,39 @@ async def update_settings(request: Request):
         try:
             settings['temperature'] = float(data['temperature'])
         except ValueError:
-            raise HTTPException(status_code=400, detail="Temperature must be a number")
+            return jsonify({'error': 'Temperature must be a number'}), 400
     if 'num_predict' in data:
         try:
             settings['num_predict'] = int(data['num_predict'])
         except ValueError:
-            raise HTTPException(status_code=400, detail="Number of tokens must be an integer")
+            return jsonify({'error': 'Number of tokens must be an integer'}), 400
 
-    session_store[session_id]["settings"] = settings
-    return JSONResponse({"status": "success", "settings": settings})
+    session['settings'] = settings
+    return jsonify({'status': 'success', 'settings': settings})
 
-@app.post("/ask")
-async def ask(request: Request):
-    form = await request.form()
-    user_query = form.get("query")
+@app.route('/ask', methods=['POST'])
+def ask():
+    user_query = request.form['query']
     if not user_query:
-        raise HTTPException(status_code=400, detail="Please enter a query")
+        return jsonify({'error': 'Please enter a query'})
 
-    session_id = request.client.host
     processed_query, user_language = process_user_query(user_query)
     processed_query = preprocess_query(processed_query)
 
     context = retrieve_relevant_context(processed_query)
-    response_text = generate_journey_with_gemini(processed_query, context, user_language)
+    response = generate_journey_with_gemini(processed_query, context, user_language)
 
     if user_language != 'english':
-        response_text = translate_response(response_text, user_language)
+        response = translate_response(response, user_language)
 
-    return JSONResponse({
+    return jsonify({
         'query': user_query,
-        'response': response_text,
+        'response': response,
         'detected_language': user_language
     })
 
-# Initialize system
+# Initialize system before first request
 initialize_system()
+
+if __name__ == '__main__':
+    app.run(debug=True, port=9000, host='0.0.0.0')
