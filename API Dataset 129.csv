@@ -1,0 +1,476 @@
+API Name,API Endpoint,API URL(s),Request Packet(s),Response Packets,Intent
+UPI Payment API,/v1/payments/upi,"https://sandbox.api.bank.com/v1/payments/upi, https://api.bank.com/v1/payments/upi","{""payerVPA"":""test@upi"",""payeeVPA"":""merchant@upi"",""amount"":""500.00"",""txnNote"":""Order#1234""}, {""payerVPA"":""test@upi"",""payeeVPA"":""merchant@upi"",""amount"":""1000.00"",""txnNote"":""Subscription""}","{""status"":""SUCCESS"",""txnId"":""UPI123456"",""approvalRef"":""123456""}, {""status"":""FAILED"",""reason"":""Insufficient Balance""}",Payment
+NEFT Payment API,/v1/payments/neft,"https://sandbox.api.bank.com/v1/payments/neft, https://api.bank.com/v1/payments/neft","{""fromAccount"":""1234567890"",""toAccount"":""9876543210"",""ifsc"":""SBIN0001234"",""amount"":""25000.00"",""txnNote"":""Invoice Payment""}, {""fromAccount"":""1234567890"",""toAccount"":""9876543210"",""ifsc"":""SBIN0001234"",""amount"":""50000.00"",""txnNote"":""Loan Repayment""}","{""status"":""PENDING"",""txnId"":""NEFT987654321"",""expectedSettlement"":""2025-08-12T17:00:00""}, {""status"":""FAILED"",""reason"":""Invalid IFSC Code""}",Payment
+IMPS Payment API,/v1/payments/imps,"https://sandbox.api.bank.com/v1/payments/imps, https://api.bank.com/v1/payments/imps","{""mobile"":""9876543210"",""mmid"":""1234567"",""amount"":""1500.00"",""txnNote"":""Bill Payment""}, {""mobile"":""9876543210"",""mmid"":""1234567"",""amount"":""3000.00"",""txnNote"":""Rent Payment""}","{""status"":""SUCCESS"",""txnId"":""IMPS654321987"",""approvalRef"":""789654""}, {""status"":""FAILED"",""reason"":""Invalid MMID""}",Payment
+RTGS Payment API,/v1/payments/rtgs,"https://sandbox.api.bank.com/v1/payments/rtgs, https://api.bank.com/v1/payments/rtgs","{""fromAccount"":""1234567890"",""toAccount"":""9876543210"",""ifsc"":""HDFC0004567"",""amount"":""200000.00"",""txnNote"":""Corporate Transfer""}, {""fromAccount"":""1234567890"",""toAccount"":""9876543210"",""ifsc"":""HDFC0004567"",""amount"":""500000.00"",""txnNote"":""Vendor Payment""}","{""status"":""PENDING"",""txnId"":""RTGS789456123"",""expectedSettlement"":""2025-08-12T14:00:00""}, {""status"":""FAILED"",""reason"":""Amount Exceeds Limit""}",Payment
+Refund API,/v1/payments/refund,"https://sandbox.api.bank.com/v1/payments/refund, https://api.bank.com/v1/payments/refund","{""originalTxnId"":""UPI123456789"",""amount"":""500.00"",""reason"":""Order Cancellation""}, {""originalTxnId"":""NEFT987654321"",""amount"":""25000.00"",""reason"":""Overpayment""}","{""status"":""SUCCESS"",""refundTxnId"":""RF123456789"",""processedAt"":""2025-08-12T10:45:00""}, {""status"":""FAILED"",""reason"":""Original Transaction Not Found""}",Payment
+Payout API,/v1/payments/payout,"https://sandbox.api.bank.com/v1/payments/payout, https://api.bank.com/v1/payments/payout","{""beneficiaryAccount"":""9876543210"",""ifsc"":""ICIC0007890"",""amount"":""7500.00"",""mode"":""IMPS"",""remark"":""Salary""}, {""beneficiaryAccount"":""9876543210"",""ifsc"":""ICIC0007890"",""amount"":""15000.00"",""mode"":""NEFT"",""remark"":""Bonus""}","{""status"":""SUCCESS"",""txnId"":""PO123456789"",""approvalRef"":""654321""}, {""status"":""FAILED"",""reason"":""Invalid Beneficiary Account""}",Payment
+Account Block API,/v1/block/account,"https://sandbox.bank.com/v1/block/account, https://api.bank.com/v1/block/account","{""accountNumber"":""1234567890"",""reason"":""Fraud Suspected"",""requestedBy"":""ops_user""} ,{""accountNumber"":""9876543210"",""reason"":""Customer Request"",""requestedBy"":""customer_portal""}","{""status"":""SUCCESS"",""blockedAt"":""2025-08-12T11:00:00"",""blockId"":""BLK-ACC-1001""},{""status"":""FAILED"",""reason"":""Account Not Found""}",Block
+Card Block API,/v1/block/card,"https://sandbox.bank.com/v1/block/card, https://api.bank.com/v1/block/card","{""cardNumber"":""4111111111111111"",""cardType"":""DEBIT"",""reason"":""Lost Card"",""requestedBy"":""customer_app""},{""cardNumber"":""5500000000000004"",""cardType"":""CREDIT"",""reason"":""Stolen"",""requestedBy"":""branch""}","{""status"":""SUCCESS"",""blockedAt"":""2025-08-12T11:05:00"",""blockId"":""BLK-CARD-2001""},{""status"":""FAILED"",""reason"":""Card Already Blocked""}",Block
+Beneficiary Block API,/v1/block/beneficiary,"https://sandbox.bank.com/v1/block/beneficiary, https://api.bank.com/v1/block/beneficiary","{""beneficiaryAccount"":""9876543210"",""ifsc"":""SBIN0001234"",""reason"":""Suspect Beneficiary"",""requestedBy"":""ops_team""},{""beneficiaryAccount"":""8765432109"",""ifsc"":""HDFC0005678"",""reason"":""Customer Request"",""requestedBy"":""customer""}","{""status"":""SUCCESS"",""blockedAt"":""2025-08-12T11:10:00"",""blockId"":""BLK-BEN-3001""},{""status"":""FAILED"",""reason"":""Beneficiary Not Found""}",Block
+Wallet Block API,/v1/block/wallet,"https://sandbox.bank.com/v1/block/wallet, https://api.bank.com/v1/block/wallet","{""walletId"":""WALLET-1234"",""reason"":""Fraud"",""requestedBy"":""fraud_team""},{""walletId"":""WALLET-5678"",""reason"":""Customer Request"",""requestedBy"":""customer_support""}","{""status"":""SUCCESS"",""blockedAt"":""2025-08-12T11:12:00"",""blockId"":""BLK-WAL-4001""},{""status"":""FAILED"",""reason"":""Wallet Not Active""}",Block
+Payout Block API,/v1/block/payout,"https://sandbox.bank.com/v1/block/payout, https://api.bank.com/v1/block/payout","{""payoutId"":""PO-7890"",""reason"":""Fraudulent Merchant"",""requestedBy"":""risk_team""},{""payoutId"":""PO-4567"",""reason"":""Duplicate Payment"",""requestedBy"":""ops""}","{""status"":""SUCCESS"",""blockedAt"":""2025-08-12T11:15:00"",""blockId"":""BLK-PO-5001""},{""status"":""FAILED"",""reason"":""Payout Already Settled""}",Block
+Customer Profile Block API,/v1/block/customer,"https://sandbox.bank.com/v1/block/customer, https://api.bank.com/v1/block/customer","{""customerId"":""CUST-1001"",""reason"":""Compliance Hold"",""requestedBy"":""compliance_team""},{""customerId"":""CUST-2002"",""reason"":""Account Closure"",""requestedBy"":""customer_request""}","{""status"":""SUCCESS"",""blockedAt"":""2025-08-12T11:20:00"",""blockId"":""BLK-CUST-6001""},{""status"":""FAILED"",""reason"":""Customer Not Found""}",Block
+Internal Fund Transfer API,/v1/funds/transfer/internal,"https://api.bankexample.com/v1/funds/transfer/internal
+https://sandbox.bankexample.com/v1/funds/transfer/internal","{
+  ""fromAccount"": ""1234567890"",
+  ""toAccount"": ""0987654321"",
+  ""amount"": 5000,
+  ""currency"": ""INR"",
+  ""remarks"": ""Salary Transfer""
+}
+
+{
+  ""fromAccount"": ""222233334444"",
+  ""toAccount"": ""555566667777"",
+  ""amount"": 2500,
+  ""currency"": ""INR"",
+  ""remarks"": ""Expense Reimbursement""
+}","{
+  ""status"": ""SUCCESS"",
+  ""transactionId"": ""TXN123456"",
+  ""timestamp"": ""2025-08-12T10:15:00Z""
+}
+
+{
+  ""status"": ""FAILED"",
+  ""errorCode"": ""INSUFFICIENT_FUNDS"",
+  ""timestamp"": ""2025-08-12T10:16:00Z""
+}",Transfer
+Bulk Transfer API,/v1/funds/transfer/bulk,"https://api.bankexample.com/v1/funds/transfer/bulk
+https://sandbox.bankexample.com/v1/funds/transfer/bulk","{
+  ""batchId"": ""BATCH1001"",
+  ""transfers"": [
+    {""toAccount"": ""111122223333"", ""amount"": 1000, ""currency"": ""INR""},
+    {""toAccount"": ""444455556666"", ""amount"": 2000, ""currency"": ""INR""}
+  ]
+}
+
+{
+  ""batchId"": ""BATCH1002"",
+  ""transfers"": [
+    {""toAccount"": ""777788889999"", ""amount"": 1500, ""currency"": ""INR""},
+    {""toAccount"": ""000011112222"", ""amount"": 2500, ""currency"": ""INR""}
+  ]
+}","{
+  ""status"": ""PARTIAL_SUCCESS"",
+  ""successfulTransfers"": 1,
+  ""failedTransfers"": 1,
+  ""failedList"": [{""toAccount"": ""444455556666"", ""reason"": ""Invalid Account""}]
+}
+
+{
+  ""status"": ""SUCCESS"",
+  ""successfulTransfers"": 2
+}",Transfer
+Cross-Border Transfer API,/v1/funds/transfer/crossborder,"https://api.bankexample.com/v1/funds/transfer/crossborder
+https://sandbox.bankexample.com/v1/funds/transfer/crossborder","{
+  ""fromAccount"": ""1234567890"",
+  ""toAccount"": ""US987654321"",
+  ""amount"": 1000,
+  ""currency"": ""USD"",
+  ""countryCode"": ""US"",
+  ""remarks"": ""Overseas Payment""
+}
+
+{
+  ""fromAccount"": ""1234567890"",
+  ""toAccount"": ""GB123456789"",
+  ""amount"": 800,
+  ""currency"": ""GBP"",
+  ""countryCode"": ""GB"",
+  ""remarks"": ""Vendor Payment""
+}","{
+  ""status"": ""SUCCESS"",
+  ""transactionId"": ""CBTXN123456"",
+  ""fxRate"": 82.50,
+  ""timestamp"": ""2025-08-12T10:20:00Z""
+}
+
+{
+  ""status"": ""FAILED"",
+  ""errorCode"": ""INVALID_SWIFT_CODE"",
+  ""timestamp"": ""2025-08-12T10:21:00Z""
+}",Transfer
+Account Unblock API,/account/unblock,"https://sandbox.bankapi.com/v1/account/unblock
+https://api.bankapi.com/v1/account/unblock","{ ""accountNumber"": ""1234567890"", ""reason"": ""User requested unblock"" }
+{ ""customerId"": ""CUST12345"", ""remarks"": ""Verified identity"" }","{ ""status"": ""success"", ""message"": ""Account unblocked successfully"" }
+{ ""status"": ""failed"", ""message"": ""Account unblock failed"" }",Unblock
+Card Unblock API,/card/unblock,"https://sandbox.bankapi.com/v1/card/unblock
+https://api.bankapi.com/v1/card/unblock","{ ""cardNumber"": ""4111111111111111"", ""reason"": ""User requested unblock"" }
+{ ""customerId"": ""CUST54321"", ""remarks"": ""Security verified"" }","{ ""status"": ""success"", ""message"": ""Card unblocked successfully"" }
+{ ""status"": ""failed"", ""message"": ""Card unblock failed"" }",Unblock
+Wallet Unblock API,/wallet/unblock,"https://sandbox.bankapi.com/v1/wallet/unblock
+https://api.bankapi.com/v1/wallet/unblock","{ ""walletId"": ""WALLET12345"", ""reason"": ""User requested unblock"" }
+{ ""customerId"": ""CUST67890"", ""remarks"": ""KYC verified"" }","{ ""status"": ""success"", ""message"": ""Wallet unblocked successfully"" }
+{ ""status"": ""failed"", ""message"": ""Wallet unblock failed"" }",Unblock
+Beneficiary Unblock API,/beneficiary/unblock,"https://sandbox.bankapi.com/v1/beneficiary/unblock
+https://api.bankapi.com/v1/beneficiary/unblock","{ ""beneficiaryId"": ""BEN12345"", ""reason"": ""User requested unblock"" }
+{ ""customerId"": ""CUST11223"", ""remarks"": ""Compliance verified"" }","{ ""status"": ""success"", ""message"": ""Beneficiary unblocked successfully"" }
+{ ""status"": ""failed"", ""message"": ""Beneficiary unblock failed"" }",Unblock
+Static QR Generation API,/api/v1/static_qr_generation_api,"https://sandbox.bankapi.com/api/v1/static_qr_generation_api
+https://api.bank.com/api/v1/static_qr_generation_api
+https://api.bank.com/v2/api/v1/static_qr_generation_api","{
+    ""merchant_id"": ""M12345"",
+    ""amount"": 500,
+    ""currency"": ""INR""
+}
+
+{
+    ""merchant_id"": ""M67890"",
+    ""amount"": 1200,
+    ""currency"": ""USD"",
+    ""order_id"": ""ORD987""
+}","{
+    ""status"": ""success"",
+    ""qr_code"": ""base64encodedstring"",
+    ""transaction_id"": ""TXN123456""
+}
+
+{
+    ""status"": ""failed"",
+    ""error_code"": ""INVALID_AMOUNT"",
+    ""message"": ""Amount must be greater than zero""
+}",QR
+Dynamic QR Generation API,/api/v1/dynamic_qr_generation_api,"https://sandbox.bankapi.com/api/v1/dynamic_qr_generation_api
+https://api.bank.com/api/v1/dynamic_qr_generation_api
+https://api.bank.com/v2/api/v1/dynamic_qr_generation_api","{
+    ""merchant_id"": ""M12345"",
+    ""amount"": 500,
+    ""currency"": ""INR""
+}
+
+{
+    ""merchant_id"": ""M67890"",
+    ""amount"": 1200,
+    ""currency"": ""USD"",
+    ""order_id"": ""ORD987""
+}","{
+    ""status"": ""success"",
+    ""qr_code"": ""base64encodedstring"",
+    ""transaction_id"": ""TXN123456""
+}
+
+{
+    ""status"": ""failed"",
+    ""error_code"": ""INVALID_AMOUNT"",
+    ""message"": ""Amount must be greater than zero""
+}",QR
+UPI QR Generation API,/api/v1/upi_qr_generation_api,"https://sandbox.bankapi.com/api/v1/upi_qr_generation_api
+https://api.bank.com/api/v1/upi_qr_generation_api
+https://api.bank.com/v2/api/v1/upi_qr_generation_api","{
+    ""merchant_id"": ""M12345"",
+    ""amount"": 500,
+    ""currency"": ""INR""
+}
+
+{
+    ""merchant_id"": ""M67890"",
+    ""amount"": 1200,
+    ""currency"": ""USD"",
+    ""order_id"": ""ORD987""
+}","{
+    ""status"": ""success"",
+    ""qr_code"": ""base64encodedstring"",
+    ""transaction_id"": ""TXN123456""
+}
+
+{
+    ""status"": ""failed"",
+    ""error_code"": ""INVALID_AMOUNT"",
+    ""message"": ""Amount must be greater than zero""
+}",QR
+QR Scan & Pay API,/api/v1/qr_scan_&_pay_api,"https://sandbox.bankapi.com/api/v1/qr_scan_&_pay_api
+https://api.bank.com/api/v1/qr_scan_&_pay_api
+https://api.bank.com/v2/api/v1/qr_scan_&_pay_api","{
+    ""merchant_id"": ""M12345"",
+    ""amount"": 500,
+    ""currency"": ""INR""
+}
+
+{
+    ""merchant_id"": ""M67890"",
+    ""amount"": 1200,
+    ""currency"": ""USD"",
+    ""order_id"": ""ORD987""
+}","{
+    ""status"": ""success"",
+    ""qr_code"": ""base64encodedstring"",
+    ""transaction_id"": ""TXN123456""
+}
+
+{
+    ""status"": ""failed"",
+    ""error_code"": ""INVALID_AMOUNT"",
+    ""message"": ""Amount must be greater than zero""
+}",QR
+QR Status Inquiry API,/api/v1/qr_status_inquiry_api,"https://sandbox.bankapi.com/api/v1/qr_status_inquiry_api
+https://api.bank.com/api/v1/qr_status_inquiry_api
+https://api.bank.com/v2/api/v1/qr_status_inquiry_api","{
+    ""merchant_id"": ""M12345"",
+    ""amount"": 500,
+    ""currency"": ""INR""
+}
+
+{
+    ""merchant_id"": ""M67890"",
+    ""amount"": 1200,
+    ""currency"": ""USD"",
+    ""order_id"": ""ORD987""
+}","{
+    ""status"": ""success"",
+    ""qr_code"": ""base64encodedstring"",
+    ""transaction_id"": ""TXN123456""
+}
+
+{
+    ""status"": ""failed"",
+    ""error_code"": ""INVALID_AMOUNT"",
+    ""message"": ""Amount must be greater than zero""
+}",QR
+QR Cancellation API,/api/v1/qr_cancellation_api,"https://sandbox.bankapi.com/api/v1/qr_cancellation_api
+https://api.bank.com/api/v1/qr_cancellation_api
+https://api.bank.com/v2/api/v1/qr_cancellation_api","{
+    ""merchant_id"": ""M12345"",
+    ""amount"": 500,
+    ""currency"": ""INR""
+}
+
+{
+    ""merchant_id"": ""M67890"",
+    ""amount"": 1200,
+    ""currency"": ""USD"",
+    ""order_id"": ""ORD987""
+}","{
+    ""status"": ""success"",
+    ""qr_code"": ""base64encodedstring"",
+    ""transaction_id"": ""TXN123456""
+}
+
+{
+    ""status"": ""failed"",
+    ""error_code"": ""INVALID_AMOUNT"",
+    ""message"": ""Amount must be greater than zero""
+}",QR
+Merchant QR Management API,/api/v1/merchant_qr_management_api,"https://sandbox.bankapi.com/api/v1/merchant_qr_management_api
+https://api.bank.com/api/v1/merchant_qr_management_api
+https://api.bank.com/v2/api/v1/merchant_qr_management_api","{
+    ""merchant_id"": ""M12345"",
+    ""amount"": 500,
+    ""currency"": ""INR""
+}
+
+{
+    ""merchant_id"": ""M67890"",
+    ""amount"": 1200,
+    ""currency"": ""USD"",
+    ""order_id"": ""ORD987""
+}","{
+    ""status"": ""success"",
+    ""qr_code"": ""base64encodedstring"",
+    ""transaction_id"": ""TXN123456""
+}
+
+{
+    ""status"": ""failed"",
+    ""error_code"": ""INVALID_AMOUNT"",
+    ""message"": ""Amount must be greater than zero""
+}",QR
+Cross-Border QR Payment API,/api/v1/crossborder_qr_payment_api,"https://sandbox.bankapi.com/api/v1/crossborder_qr_payment_api
+https://api.bank.com/api/v1/crossborder_qr_payment_api
+https://api.bank.com/v2/api/v1/crossborder_qr_payment_api","{
+    ""merchant_id"": ""M12345"",
+    ""amount"": 500,
+    ""currency"": ""INR""
+}
+
+{
+    ""merchant_id"": ""M67890"",
+    ""amount"": 1200,
+    ""currency"": ""USD"",
+    ""order_id"": ""ORD987""
+}","{
+    ""status"": ""success"",
+    ""qr_code"": ""base64encodedstring"",
+    ""transaction_id"": ""TXN123456""
+}
+
+{
+    ""status"": ""failed"",
+    ""error_code"": ""INVALID_AMOUNT"",
+    ""message"": ""Amount must be greater than zero""
+}",QR
+PAN Verification API,/kyc/pan/verify,"https://sandbox.bankapi.com/v1/kyc/pan/verify
+https://api.bank.com/v1/kyc/pan/verify","{ ""pan_number"": ""ABCDE1234F"" }
+{ ""pan_number"": ""ABCDE1234F"", ""dob"": ""1990-05-14"" }","{ ""status"": ""success"", ""name"": ""John Doe"", ""pan_status"": ""Active"" }
+{ ""status"": ""error"", ""message"": ""Invalid PAN"" }",KYC
+Aadhaar Verification API,/kyc/aadhaar/verify,"https://sandbox.bankapi.com/v1/kyc/aadhaar/verify
+https://api.bank.com/v1/kyc/aadhaar/verify","{ ""aadhaar_number"": ""123412341234"" }
+{ ""aadhaar_number"": ""123412341234"", ""dob"": ""1988-02-10"" }","{ ""status"": ""success"", ""aadhaar_status"": ""Valid"" }
+{ ""status"": ""error"", ""message"": ""Invalid Aadhaar"" }",KYC
+Aadhaar OTP e-KYC API,/kyc/aadhaar/otp,"https://sandbox.bankapi.com/v1/kyc/aadhaar/otp
+https://api.bank.com/v1/kyc/aadhaar/otp","{ ""aadhaar_number"": ""123412341234"", ""mobile_number"": ""9876543210"" }
+{ ""otp"": ""123456"", ""transaction_id"": ""txn123"" }","{ ""status"": ""success"", ""name"": ""Rohit Sharma"", ""dob"": ""1988-04-30"" }
+{ ""status"": ""error"", ""message"": ""OTP Expired"" }",KYC
+Aadhaar Biometric e-KYC API,/kyc/aadhaar/biometric,"https://sandbox.bankapi.com/v1/kyc/aadhaar/biometric
+https://api.bank.com/v1/kyc/aadhaar/biometric","{ ""aadhaar_number"": ""123412341234"", ""biometric_data"": ""BASE64DATA"" }","{ ""status"": ""success"", ""name"": ""Anil Kumar"", ""dob"": ""1992-08-19"" }
+{ ""status"": ""error"", ""message"": ""Biometric mismatch"" }",KYC
+CKYC Search & Fetch API,/kyc/ckyc/search,"https://sandbox.bankapi.com/v1/kyc/ckyc/search
+https://api.bank.com/v1/kyc/ckyc/search","{ ""pan_number"": ""ABCDE1234F"" }
+{ ""ckyc_number"": ""1234567890123456"" }","{ ""status"": ""success"", ""ckyc_data"": { ""name"": ""Amit Verma"" } }
+{ ""status"": ""error"", ""message"": ""CKYC record not found"" }",KYC
+Voter ID Verification API,/kyc/voterid/verify,"https://sandbox.bankapi.com/v1/kyc/voterid/verify
+https://api.bank.com/v1/kyc/voterid/verify","{ ""voter_id"": ""XYZ1234567"" }
+{ ""voter_id"": ""XYZ1234567"", ""dob"": ""1995-01-01"" }","{ ""status"": ""success"", ""name"": ""Priya Singh"" }
+{ ""status"": ""error"", ""message"": ""Invalid Voter ID"" }",KYC
+Driving License Verification API,/kyc/dl/verify,"https://sandbox.bankapi.com/v1/kyc/dl/verify
+https://api.bank.com/v1/kyc/dl/verify","{ ""dl_number"": ""DL-0420110149646"" }
+{ ""dl_number"": ""DL-0420110149646"", ""dob"": ""1990-10-15"" }","{ ""status"": ""success"", ""name"": ""Rahul Mehta"" }
+{ ""status"": ""error"", ""message"": ""Invalid DL number"" }",KYC
+Passport Verification API,/kyc/passport/verify,"https://sandbox.bankapi.com/v1/kyc/passport/verify
+https://api.bank.com/v1/kyc/passport/verify","{ ""passport_number"": ""M1234567"" }
+{ ""passport_number"": ""M1234567"", ""dob"": ""1985-12-25"" }","{ ""status"": ""success"", ""name"": ""Suresh Kumar"" }
+{ ""status"": ""error"", ""message"": ""Invalid Passport Number"" }",KYC
+Face Match API,/kyc/face/match,"https://sandbox.bankapi.com/v1/kyc/face/match
+https://api.bank.com/v1/kyc/face/match","{ ""image1"": ""BASE64DATA"", ""image2"": ""BASE64DATA"" }","{ ""status"": ""success"", ""match_percentage"": 98 }
+{ ""status"": ""error"", ""message"": ""Face mismatch"" }",KYC
+Document OCR API,/kyc/document/ocr,"https://sandbox.bankapi.com/v1/kyc/document/ocr
+https://api.bank.com/v1/kyc/document/ocr","{ ""document_image"": ""BASE64DATA"" }","{ ""status"": ""success"", ""extracted_text"": ""John Doe, DOB: 1990-01-01"" }
+{ ""status"": ""error"", ""message"": ""Unable to read document"" }",KYC
+Payment Cancellation API,/payment/cancel,"https://sandbox.bankapi.com/v1/payment/cancel
+https://api.bankapi.com/v1/payment/cancel","{ ""transactionId"": ""TXN123456"", ""reason"": ""User requested cancellation"" }
+{ ""paymentId"": ""PAY987654"", ""cancelRemarks"": ""Duplicate payment"" }","{ ""status"": ""success"", ""message"": ""Payment cancelled successfully"" }
+{ ""status"": ""failed"", ""message"": ""Cancellation window expired"" }",Cancel
+Fund Transfer Cancellation API,/fundtransfer/cancel,"https://sandbox.bankapi.com/v1/fundtransfer/cancel
+https://api.bankapi.com/v1/fundtransfer/cancel","{ ""transferId"": ""FTX12345"", ""cancelReason"": ""Mistaken transfer"" }
+{ ""transactionId"": ""TXN345678"", ""remarks"": ""Urgent cancellation"" }","{ ""status"": ""success"", ""message"": ""Fund transfer cancelled"" }
+{ ""status"": ""failed"", ""message"": ""Transfer already processed"" }",Cancel
+Bill Payment Cancellation API,/bill/payment/cancel,"https://sandbox.bankapi.com/v1/bill/payment/cancel
+https://api.bankapi.com/v1/bill/payment/cancel","{ ""billPaymentId"": ""BILLPAY123"", ""reason"": ""Incorrect amount"" }
+{ ""transactionRef"": ""TXN789012"", ""cancelReason"": ""Customer request"" }","{ ""status"": ""success"", ""message"": ""Bill payment cancelled"" }
+{ ""status"": ""failed"", ""message"": ""Cancellation not allowed after settlement"" }",Cancel
+Standing Instruction Cancellation API,/standinginstruction/cancel,"https://sandbox.bankapi.com/v1/standinginstruction/cancel
+https://api.bankapi.com/v1/standinginstruction/cancel","{ ""instructionId"": ""SI123456"", ""reason"": ""User request"" }
+{ ""standingInstructionId"": ""SI987654"", ""cancelRemarks"": ""Incorrect schedule"" }","{ ""status"": ""success"", ""message"": ""Standing instruction cancelled"" }
+{ ""status"": ""failed"", ""message"": ""Cancellation period expired"" }",Cancel
+Cheque Bounce Cancellation API,/cheque/bounce/cancel,"https://sandbox.bankapi.com/v1/cheque/bounce/cancel
+https://api.bankapi.com/v1/cheque/bounce/cancel","{ ""chequeId"": ""CHQ123456"", ""reason"": ""User dispute"" }
+{ ""transactionId"": ""TXN654321"", ""cancelReason"": ""Error in processing"" }","{ ""status"": ""success"", ""message"": ""Cheque bounce cancellation successful"" }
+{ ""status"": ""failed"", ""message"": ""Cancellation not allowed"" }",Cancel
+Mandate Cancellation API,/mandate/cancel,"https://sandbox.bankapi.com/v1/mandate/cancel
+https://api.bankapi.com/v1/mandate/cancel","{ ""mandateId"": ""MDT123456"", ""reason"": ""User request"" }
+{ ""mandateReference"": ""MDT987654"", ""cancelRemarks"": ""Duplicate mandate"" }","{ ""status"": ""success"", ""message"": ""Mandate cancelled successfully"" }
+{ ""status"": ""failed"", ""message"": ""Mandate cancellation failed"" }",Cancel
+Card Transaction Reversal API,/card/transaction/reversal,"https://sandbox.bankapi.com/v1/card/transaction/reversal
+https://api.bankapi.com/v1/card/transaction/reversal","{ ""transactionId"": ""CARDTXN123"", ""reason"": ""Fraudulent transaction"" }
+{ ""cardTransactionId"": ""CARDTXN987"", ""cancelRemarks"": ""Customer dispute"" }","{ ""status"": ""success"", ""message"": ""Transaction reversed successfully"" }
+{ ""status"": ""failed"", ""message"": ""Reversal not permitted"" }",Cancel
+Loan EMI Cancellation API,/loan/emi/cancel,"https://sandbox.bankapi.com/v1/loan/emi/cancel
+https://api.bankapi.com/v1/loan/emi/cancel","{ ""emiId"": ""EMI123456"", ""reason"": ""Prepayment"" }
+{ ""loanAccount"": ""LN987654"", ""cancelRemarks"": ""EMI adjustment"" }","{ ""status"": ""success"", ""message"": ""EMI cancelled successfully"" }
+{ ""status"": ""failed"", ""message"": ""EMI cancellation failed"" }",Cancel
+Subscription Cancellation API,/subscription/cancel,"https://sandbox.bankapi.com/v1/subscription/cancel
+https://api.bankapi.com/v1/subscription/cancel","{ ""subscriptionId"": ""SUB123456"", ""reason"": ""User request"" }
+{ ""subscriptionRef"": ""SUB987654"", ""cancelRemarks"": ""Service discontinued"" }","{ ""status"": ""success"", ""message"": ""Subscription cancelled"" }
+{ ""status"": ""failed"", ""message"": ""Cancellation failed"" }",Cancel
+Scheduled Payment Cancellation API,/scheduledpayment/cancel,"https://sandbox.bankapi.com/v1/scheduledpayment/cancel
+https://api.bankapi.com/v1/scheduledpayment/cancel","{ ""scheduleId"": ""SCH123456"", ""reason"": ""User cancellation"" }
+{ ""paymentScheduleRef"": ""SCH987654"", ""cancelRemarks"": ""Incorrect amount"" }","{ ""status"": ""success"", ""message"": ""Scheduled payment cancelled"" }
+{ ""status"": ""failed"", ""message"": ""Cancellation window closed"" }",Cancel
+Bill Fetch API,/bill/fetch,"https://sandbox.bankapi.com/v1/bill/fetch
+https://api.bankapi.com/v1/bill/fetch","{ ""consumerId"": ""C123456789"", ""billerId"": ""ELEC001"" }
+{ ""accountNumber"": ""9876543210"", ""billerCategory"": ""Electricity"" }","{ ""status"": ""success"", ""dueAmount"": 1500.75, ""dueDate"": ""2025-09-01"" }
+{ ""status"": ""error"", ""message"": ""Invalid consumer ID"" }",Bill
+Bill Payment API,/bill/pay,"https://sandbox.bankapi.com/v1/bill/pay
+https://api.bankapi.com/v1/bill/pay","{ ""consumerId"": ""C123456789"", ""billerId"": ""ELEC001"", ""amount"": 1500.75, ""paymentMode"": ""UPI"" }
+{ ""accountNumber"": ""9876543210"", ""billerCategory"": ""Electricity"", ""amount"": 1500.75, ""paymentMode"": ""NetBanking"" }","{ ""status"": ""success"", ""transactionId"": ""TXN123456"", ""message"": ""Payment successful"" }
+{ ""status"": ""failed"", ""message"": ""Insufficient balance"" }",Bill
+Bill Validation API,/bill/validate,"https://sandbox.bankapi.com/v1/bill/validate
+https://api.bankapi.com/v1/bill/validate","{ ""consumerId"": ""C123456789"", ""billerId"": ""ELEC001"" }
+{ ""accountNumber"": ""9876543210"", ""billerCategory"": ""Electricity"" }","{ ""status"": ""valid"", ""message"": ""Consumer details valid"" }
+{ ""status"": ""invalid"", ""message"": ""Consumer details not found"" }",Bill
+Bill Payment Status API,/bill/payment/status,"https://sandbox.bankapi.com/v1/bill/payment/status
+https://api.bankapi.com/v1/bill/payment/status","{ ""transactionId"": ""TXN123456"" }
+{ ""paymentReference"": ""REF987654321"" }","{ ""status"": ""success"", ""paymentStatus"": ""Completed"" }
+{ ""status"": ""pending"", ""paymentStatus"": ""Processing"" }
+{ ""status"": ""failed"", ""message"": ""Transaction not found"" }",Bill
+Biller List API,/bill/biller/list,"https://sandbox.bankapi.com/v1/bill/biller/list
+https://api.bankapi.com/v1/bill/biller/list","{ ""category"": ""Electricity"" }
+{ ""category"": ""Water"" }","{ ""status"": ""success"", ""billers"": [""ELEC001"", ""ELEC002""] }
+{ ""status"": ""error"", ""message"": ""Category not found"" }",Bill
+TransactionInitiateAPI,/transaction/initiate,https://api.bank.com/transaction/initiate,"{""customerId"":""12345"",""accountNumber"":""9876543210"",""amount"":5000,""currency"":""INR"",""type"":""debit""}","{""transactionId"":""TXN123456"",""status"":""initiated"",""message"":""Transaction initiated successfully""}",Transaction
+TransactionAuthorizationAPI,/transaction/authorize,https://api.bank.com/transaction/authorize,"{""transactionId"":""TXN123456"",""otp"":""123456""}","{""transactionId"":""TXN123456"",""status"":""authorized""}",Transaction
+TransactionProcessingAPI,/transaction/process,https://api.bank.com/transaction/process,"{""transactionId"":""TXN123456""}","{""transactionId"":""TXN123456"",""status"":""processing""}",Transaction
+TransactionStatusAPI,/transaction/status,https://api.bank.com/transaction/status,"{""transactionId"":""TXN123456""}","{""transactionId"":""TXN123456"",""status"":""success"",""amount"":5000}",Transaction
+TransactionHistoryAPI,/transaction/history,https://api.bank.com/transaction/history,"{""customerId"":""12345"",""fromDate"":""2025-01-01"",""toDate"":""2025-08-10""}","{""transactions"":[{""date"":""2025-08-01"",""amount"":5000,""type"":""debit""},{""date"":""2025-07-15"",""amount"":2000,""type"":""credit""}]}",Transaction
+MiniStatementAPI,/account/ministatement,https://api.bank.com/account/ministatement,"{""accountNumber"":""9876543210""}","{""accountNumber"":""9876543210"",""transactions"":[{""date"":""2025-08-01"",""amount"":5000,""type"":""debit""},{""date"":""2025-07-30"",""amount"":2000,""type"":""credit""}]}",Transaction
+BalanceInquiryAPI,/account/balance,https://api.bank.com/account/balance,"{""accountNumber"":""9876543210""}","{""accountNumber"":""9876543210"",""balance"":150000,""currency"":""INR""}",Transaction
+FundTransferAPI,/transfer/funds,https://api.bank.com/transfer/funds,"{""fromAccount"":""9876543210"",""toAccount"":""1234567890"",""amount"":10000,""currency"":""INR""}","{""transactionId"":""TXN987654"",""status"":""success"",""message"":""Funds transferred successfully""}",Transaction
+TransactionReversalAPI,/transaction/reversal,https://api.bank.com/transaction/reversal,"{""transactionId"":""TXN123456"",""reason"":""Duplicate debit""}","{""status"":""reversed"",""message"":""Transaction reversed successfully""}",Transaction
+MobileNumberVerificationAPI,/v1/mobile/mobilenumberverification,https://api.bankexample.com/v1/mobile/mobilenumberverification,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberVerification completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberValidationAPI,/v1/mobile/mobilenumbervalidation,https://api.bankexample.com/v1/mobile/mobilenumbervalidation,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberValidation completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberRegistrationAPI,/v1/mobile/mobilenumberregistration,https://api.bankexample.com/v1/mobile/mobilenumberregistration,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberRegistration completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberUpdateAPI,/v1/mobile/mobilenumberupdate,https://api.bankexample.com/v1/mobile/mobilenumberupdate,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberUpdate completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberChangeRequestAPI,/v1/mobile/mobilenumberchangerequest,https://api.bankexample.com/v1/mobile/mobilenumberchangerequest,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberChangeRequest completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberChangeApprovalAPI,/v1/mobile/mobilenumberchangeapproval,https://api.bankexample.com/v1/mobile/mobilenumberchangeapproval,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberChangeApproval completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberLinkAccountAPI,/v1/mobile/mobilenumberlinkaccount,https://api.bankexample.com/v1/mobile/mobilenumberlinkaccount,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberLinkAccount completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberUnlinkAccountAPI,/v1/mobile/mobilenumberunlinkaccount,https://api.bankexample.com/v1/mobile/mobilenumberunlinkaccount,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberUnlinkAccount completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberFetchLinkedAccountsAPI,/v1/mobile/mobilenumberfetchlinkedaccounts,https://api.bankexample.com/v1/mobile/mobilenumberfetchlinkedaccounts,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberFetchLinkedAccounts completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberPortabilityCheckAPI,/v1/mobile/mobilenumberportabilitycheck,https://api.bankexample.com/v1/mobile/mobilenumberportabilitycheck,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberPortabilityCheck completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberPortabilityRequestAPI,/v1/mobile/mobilenumberportabilityrequest,https://api.bankexample.com/v1/mobile/mobilenumberportabilityrequest,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberPortabilityRequest completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberDeactivationAPI,/v1/mobile/mobilenumberdeactivation,https://api.bankexample.com/v1/mobile/mobilenumberdeactivation,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberDeactivation completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberActivationAPI,/v1/mobile/mobilenumberactivation,https://api.bankexample.com/v1/mobile/mobilenumberactivation,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberActivation completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberKYCVerificationAPI,/v1/mobile/mobilenumberkycverification,https://api.bankexample.com/v1/mobile/mobilenumberkycverification,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberKYCVerification completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberBlacklistCheckAPI,/v1/mobile/mobilenumberblacklistcheck,https://api.bankexample.com/v1/mobile/mobilenumberblacklistcheck,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberBlacklistCheck completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberFraudCheckAPI,/v1/mobile/mobilenumberfraudcheck,https://api.bankexample.com/v1/mobile/mobilenumberfraudcheck,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberFraudCheck completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberOTPGenerateAPI,/v1/mobile/mobilenumberotpgenerate,https://api.bankexample.com/v1/mobile/mobilenumberotpgenerate,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberOTPGenerate completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberOTPVerifyAPI,/v1/mobile/mobilenumberotpverify,https://api.bankexample.com/v1/mobile/mobilenumberotpverify,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberOTPVerify completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberResendOTPAPI,/v1/mobile/mobilenumberresendotp,https://api.bankexample.com/v1/mobile/mobilenumberresendotp,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberResendOTP completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+MobileNumberStatusCheckAPI,/v1/mobile/mobilenumberstatuscheck,https://api.bankexample.com/v1/mobile/mobilenumberstatuscheck,"{'mobileNumber': '9876543210', 'countryCode': '+91'}","{'status': 'success', 'message': 'MobileNumberStatusCheck completed successfully', 'timestamp': '2025-08-13T10:00:00Z'}",Mobile Number
+LoanApplicationAPI,/loan/apply,https://api.bank.com/loan/apply,"{""customerId"":""12345"",""loanType"":""personal"",""loanAmount"":500000,""tenureMonths"":60,""income"":75000}","{""applicationId"":""LA123456"",""status"":""submitted"",""message"":""Loan application submitted successfully""}",Loan
+LoanEligibilityCheckAPI,/loan/eligibility,https://api.bank.com/loan/eligibility,"{""customerId"":""12345"",""loanType"":""home"",""loanAmount"":2000000,""income"":120000}","{""eligible"":true,""maxEligibleAmount"":2500000,""interestRate"":7.5,""message"":""Customer eligible for loan""}",Loan
+LoanSanctionAPI,/loan/sanction,https://api.bank.com/loan/sanction,"{""applicationId"":""LA123456"",""approvedAmount"":500000,""interestRate"":7.5,""tenureMonths"":60}","{""sanctionId"":""LS987654"",""status"":""sanctioned"",""disbursementDate"":""2025-08-15""}",Loan
+LoanDisbursementAPI,/loan/disburse,https://api.bank.com/loan/disburse,"{""sanctionId"":""LS987654"",""accountNumber"":""1234567890"",""disbursementAmount"":500000}","{""transactionId"":""TX987654321"",""status"":""success"",""message"":""Loan amount disbursed successfully""}",Loan
+LoanRepaymentAPI,/loan/repay,https://api.bank.com/loan/repay,"{""loanAccountId"":""LN123456"",""paymentAmount"":10000,""paymentDate"":""2025-08-10"",""mode"":""UPI""}","{""paymentId"":""PMT987654"",""status"":""success"",""outstandingBalance"":490000}",Loan
+LoanForeclosureAPI,/loan/foreclose,https://api.bank.com/loan/foreclose,"{""loanAccountId"":""LN123456"",""foreclosureDate"":""2025-09-01""}","{""status"":""foreclosed"",""closureAmount"":450000,""message"":""Loan closed successfully""}",Loan
+LoanPartPaymentAPI,/loan/partpayment,https://api.bank.com/loan/partpayment,"{""loanAccountId"":""LN123456"",""partPaymentAmount"":50000,""paymentDate"":""2025-08-10""}","{""status"":""success"",""newOutstandingBalance"":440000}",Loan
+LoanStatementAPI,/loan/statement,https://api.bank.com/loan/statement,"{""loanAccountId"":""LN123456"",""fromDate"":""2025-01-01"",""toDate"":""2025-08-10""}","{""loanAccountId"":""LN123456"",""transactions"":[{""date"":""2025-02-01"",""amount"":10000,""type"":""EMI""},{""date"":""2025-03-01"",""amount"":10000,""type"":""EMI""}]}",Loan
+LoanBalanceInquiryAPI,/loan/balance,https://api.bank.com/loan/balance,"{""loanAccountId"":""LN123456""}","{""loanAccountId"":""LN123456"",""outstandingBalance"":440000,""nextEMIDate"":""2025-09-01""}",Loan
+LoanClosureAPI,/loan/close,https://api.bank.com/loan/close,"{""loanAccountId"":""LN123456"",""closureReason"":""Fully Paid""}","{""status"":""closed"",""message"":""Loan account closed successfully""}",Loan
+CustomerRegistrationAPI,/v1/CustomerRegistrationAPI,https://api.bankexample.com/CustomerRegistrationAPI,"{""customerName"": ""John Doe"", ""dob"": ""1990-05-12"", ""mobile"": ""9876543210"", ""email"": ""john@example.com"", ""address"": ""123 Main St"", ""idProofType"": ""Aadhar"", ""idProofNumber"": ""1234-5678-9012""}","{""status"": ""SUCCESS"", ""customerId"": ""CUST1001"", ""message"": ""Registration successful""}",Customer Registration
+CustomerOnboardingAPI,/v1/CustomerOnboardingAPI,https://api.bankexample.com/CustomerOnboardingAPI,"{""customerId"": ""CUST1001"", ""branchCode"": ""BR001"", ""relationshipManager"": ""RM102"", ""accountType"": ""Savings""}","{""status"": ""SUCCESS"", ""message"": ""Customer onboarded"", ""onboardingDate"": ""2025-08-13""}",Customer Registration
+CustomerPreRegistrationAPI,/v1/CustomerPreRegistrationAPI,https://api.bankexample.com/CustomerPreRegistrationAPI,"{""mobile"": ""9876543210"", ""email"": ""john@example.com""}","{""status"": ""PENDING"", ""preRegId"": ""PR12345""}",Customer Registration
+CustomerProfileCreationAPI,/v1/CustomerProfileCreationAPI,https://api.bankexample.com/CustomerProfileCreationAPI,"{""customerId"": ""CUST1001"", ""occupation"": ""Engineer"", ""annualIncome"": 800000}","{""status"": ""SUCCESS"", ""message"": ""Profile created""}",Customer Registration
+CustomerAccountLinkingAPI,/v1/CustomerAccountLinkingAPI,https://api.bankexample.com/CustomerAccountLinkingAPI,"{""customerId"": ""CUST1001"", ""accountNumber"": ""987654321098"", ""ifsc"": ""HDFC0001234""}","{""status"": ""SUCCESS"", ""linkedAccounts"": [""987654321098""]}",Customer Registration
+CustomerRegistrationStatusCheckAPI,/v1/CustomerRegistrationStatusCheckAPI,https://api.bankexample.com/CustomerRegistrationStatusCheckAPI,"{""customerId"": ""CUST1001""}","{""status"": ""SUCCESS"", ""registrationStatus"": ""APPROVED""}",Customer Registration
+CustomerRegistrationApprovalAPI,/v1/CustomerRegistrationApprovalAPI,https://api.bankexample.com/CustomerRegistrationApprovalAPI,"{""customerId"": ""CUST1001"", ""approvedBy"": ""EMP101""}","{""status"": ""SUCCESS"", ""message"": ""Customer registration approved""}",Customer Registration
+CustomerRegistrationRejectionAPI,/v1/CustomerRegistrationRejectionAPI,https://api.bankexample.com/CustomerRegistrationRejectionAPI,"{""customerId"": ""CUST1001"", ""reason"": ""Incomplete documents""}","{""status"": ""SUCCESS"", ""message"": ""Customer registration rejected""}",Customer Registration
+CustomerDataValidationAPI,/v1/CustomerDataValidationAPI,https://api.bankexample.com/CustomerDataValidationAPI,"{""customerId"": ""CUST1001"", ""fieldsToValidate"": [""dob"", ""mobile"", ""email""]}","{""status"": ""SUCCESS"", ""validationResults"": {""dob"": ""Valid"", ""mobile"": ""Valid"", ""email"": ""Valid""}}",Customer Registration
+CustomerDocumentUploadAPI,/v1/CustomerDocumentUploadAPI,https://api.bankexample.com/CustomerDocumentUploadAPI,"{""customerId"": ""CUST1001"", ""documentType"": ""PAN Card"", ""fileName"": ""pan_card.pdf"", ""fileContentBase64"": ""JVBERi0xLjQKJ...""}","{""status"": ""SUCCESS"", ""message"": ""Document uploaded"", ""documentId"": ""DOC101""}",Customer Registration
+CustomerDocumentVerificationAPI,/v1/CustomerDocumentVerificationAPI,https://api.bankexample.com/CustomerDocumentVerificationAPI,"{""documentId"": ""DOC101"", ""verifiedBy"": ""EMP202""}","{""status"": ""SUCCESS"", ""message"": ""Document verified""}",Customer Registration
+CustomerIDProofVerificationAPI,/v1/CustomerIDProofVerificationAPI,https://api.bankexample.com/CustomerIDProofVerificationAPI,"{""customerId"": ""CUST1001"", ""idProofType"": ""Aadhar"", ""idProofNumber"": ""1234-5678-9012""}","{""status"": ""SUCCESS"", ""message"": ""ID proof verified""}",Customer Registration
+CustomerRegistrationUpdateAPI,/v1/CustomerRegistrationUpdateAPI,https://api.bankexample.com/CustomerRegistrationUpdateAPI,"{""customerId"": ""CUST1001"", ""updatedFields"": {""mobile"": ""9876501234""}}","{""status"": ""SUCCESS"", ""message"": ""Customer registration updated""}",Customer Registration
+CustomerReRegistrationAPI,/v1/CustomerReRegistrationAPI,https://api.bankexample.com/CustomerReRegistrationAPI,"{""customerId"": ""CUST1001"", ""reason"": ""Data correction""}","{""status"": ""SUCCESS"", ""message"": ""Customer re-registered""}",Customer Registration
+CustomerDeRegistrationAPI,/v1/CustomerDeRegistrationAPI,https://api.bankexample.com/CustomerDeRegistrationAPI,"{""customerId"": ""CUST1001"", ""reason"": ""Account closure""}","{""status"": ""SUCCESS"", ""message"": ""Customer deregistered""}",Customer Registration
+CustomerProfileCompletionAPI,/v1/CustomerProfileCompletionAPI,https://api.bankexample.com/CustomerProfileCompletionAPI,"{""customerId"": ""CUST1001"", ""missingFields"": [""email"", ""nomineeName""]}","{""status"": ""SUCCESS"", ""message"": ""Profile completed""}",Customer Registration
+CustomerAccountActivation,/v1/CustomerAccountActivation,https://api.bankexample.com/CustomerAccountActivation,"{""customerId"": ""CUST1001"", ""accountNumber"": ""987654321098""}","{""status"": ""SUCCESS"", ""message"": ""Account activated""}",Customer Registration
+UserLoginAPI,/auth/userlogin,https://api.bankname.com/auth/userlogin,"{'username': 'string', 'password': 'string', 'deviceId': 'string'}","{'status': 'success', 'sessionId': 'string', 'token': 'string'}",Authentication
+UserLogoutAPI,/auth/userlogout,https://api.bankname.com/auth/userlogout,{'sessionId': 'string'},"{'status': 'success', 'message': 'User logged out successfully'}",Authentication
+GenerateAccessTokenAPI,/auth/generateaccesstoken,https://api.bankname.com/auth/generateaccesstoken,"{'clientId': 'string', 'clientSecret': 'string'}","{'status': 'success', 'accessToken': 'string', 'expiresIn': 3600}",Authentication
+RefreshAccessTokenAPI,/auth/refreshaccesstoken,https://api.bankname.com/auth/refreshaccesstoken,{'refreshToken': 'string'},"{'status': 'success', 'accessToken': 'string', 'expiresIn': 3600}",Authentication
+ValidateAccessTokenAPI,/auth/validateaccesstoken,https://api.bankname.com/auth/validateaccesstoken,{'accessToken': 'string'},"{'status': 'success', 'isValid': True, 'expiresIn': 1200}",Authentication
+OTPGenerateAPI,/auth/otpgenerate,https://api.bankname.com/auth/otpgenerate,"{'mobileNumber': 'string', 'purpose': 'login/transaction'}","{'status': 'success', 'transactionId': 'string', 'message': 'OTP sent'}",Authentication
+OTPVerifyAPI,/auth/otpverify,https://api.bankname.com/auth/otpverify,"{'transactionId': 'string', 'otp': 'string'}","{'status': 'success', 'message': 'OTP verified successfully'}",Authentication
+ResendOTPAPI,/auth/resendotp,https://api.bankname.com/auth/resendotp,{'transactionId': 'string'},"{'status': 'success', 'message': 'OTP resent successfully'}",Authentication
+ChangePasswordAPI,/auth/changepassword,https://api.bankname.com/auth/changepassword,"{'sessionId': 'string', 'oldPassword': 'string', 'newPassword': 'string'}","{'status': 'success', 'message': 'Password changed successfully'}",Authentication
+ResetPasswordAPI,/auth/resetpassword,https://api.bankname.com/auth/resetpassword,"{'userId': 'string', 'securityAnswer': 'string', 'newPassword': 'string'}","{'status': 'success', 'message': 'Password reset successfully'}",Authentication
+ForgotPasswordAPI,/auth/forgotpassword,https://api.bankname.com/auth/forgotpassword,"{'userId': 'string', 'email': 'string'}","{'status': 'success', 'message': 'Password reset link sent to email'}",Authentication
+SetNewPasswordAPI,/auth/setnewpassword,https://api.bankname.com/auth/setnewpassword,"{'resetToken': 'string', 'newPassword': 'string'}","{'status': 'success', 'message': 'Password set successfully'}",Authentication
+SecurityQuestionSetupAPI,/auth/securityquestionsetup,https://api.bankname.com/auth/securityquestionsetup,"{'sessionId': 'string', 'question': 'string', 'answer': 'string'}","{'status': 'success', 'message': 'Security question set successfully'}",Authentication
+SecurityQuestionVerifyAPI,/auth/securityquestionverify,https://api.bankname.com/auth/securityquestionverify,"{'sessionId': 'string', 'answer': 'string'}","{'status': 'success', 'message': 'Security question verified'}",Authentication
+TwoFactorAuthEnableAPI,/auth/twofactorauthenable,https://api.bankname.com/auth/twofactorauthenable,"{'sessionId': 'string', 'method': 'SMS/Email/App'}","{'status': 'success', 'message': 'Two-factor authentication enabled'}",Authentication
+TwoFactorAuthDisableAPI,/auth/twofactorauthdisable,https://api.bankname.com/auth/twofactorauthdisable,{'sessionId': 'string'},"{'status': 'success', 'message': 'Two-factor authentication disabled'}",Authentication
+DeviceRegistrationAPI,/auth/deviceregistration,https://api.bankname.com/auth/deviceregistration,"{'sessionId': 'string', 'deviceId': 'string', 'deviceType': 'string'}","{'status': 'success', 'message': 'Device registered successfully'}",Authentication
+DeviceVerificationAPI,/auth/deviceverification,https://api.bankname.com/auth/deviceverification,"{'sessionId': 'string', 'deviceId': 'string', 'otp': 'string'}","{'status': 'success', 'message': 'Device verified successfully'}",Authentication
+SessionValidationAPI,/auth/sessionvalidation,https://api.bankname.com/auth/sessionvalidation,{'sessionId': 'string'},"{'status': 'success', 'isValid': True}",Authentication
+SessionTerminationAPI,/auth/sessiontermination,https://api.bankname.com/auth/sessiontermination,{'sessionId': 'string'},"{'status': 'success', 'message': 'Session terminated successfully'}",Authentication

@@ -37,42 +37,28 @@ def get_conversation_history():
         session['conversation'] = [
             {
                 "role": "system",
-                "content": f"""You are ACE AI, a highly advanced AI assistant capable of answering **any question**.  
+                "content": f"""You are ACE AI, a powerful Large Language Model (LLM) assistant.  
+You are **not restricted to any single domain** – you can answer questions from **technology, coding, error debugging, APIs, artificial intelligence, banking, finance, education, science, history, health, and more**.  
 
-You serve multiple purposes:  
-1️⃣ **Customer Support:** Answer queries related to ICICI Bank services, accounts, credit cards, loans, net banking, UPI, and customer support.  
-2️⃣ **Business Insight:** Provide business, financial, or strategic information.  
-3️⃣ **Technical Guidance:** Explain banking technology, AI/ML concepts, programming, and digital solutions.  
-4️⃣ **General Knowledge:** Answer questions from any domain like science, technology, history, or culture.  
+Your role:  
+- Provide **accurate, detailed, step-by-step answers**.  
+- If question is technical (like error codes, debugging, APIs) → give **exact solutions** with examples.  
+- If question is general knowledge → explain clearly and helpfully.  
+- If you don’t have enough info → suggest possible directions or related resources.  
 
-⚡ **Rules:**  
-- Always provide **complete, detailed, and structured answers**. Include examples, reasoning steps, and explanations when relevant.  
-- Adapt your tone to user intent: casual, professional, technical, or advisory.  
-- If unsure, politely guide the user to consult an expert or official source.  
-- If the user asks **"Who built you?"** or **"Who made you?"**, always answer:  
-  "I was built by Shubham Rahangdale, an AI & ML enthusiast from Bhopal, Madhya Pradesh, India.  
-  He is pursuing B.Tech in Artificial Intelligence and Machine Learning (Final year),  
-  Founder of Neuro Tech Enclave Pvt Ltd.  
-  (Current system time: {current_time})"  
-
-🔹 **LLM Behavior:**  
-- Think step-by-step before answering.  
-- Use bullet points, numbered lists, tables, or headings for clarity.  
-- Provide **long-form reasoning and detailed insights**, not just short answers.  
-- Be dynamic, adaptive, and informative for any type of question.
+(Current system time: {current_time})
 """
             }
         ]
     return session['conversation']
 
+
 def get_settings():
     if 'settings' not in session:
         session['settings'] = {
-            "model": "gemma:7b",       # Bigger model for LLM-like capability
-            "num_predict": 2000,       # Max tokens per response
-            "temperature": 0.7,        # Slight creativity
-            "top_p": 0.9,              # More diverse output
-            "stop": None               # Let model finish full response
+            "model": "gemma:2b",
+            "num_predict": 999999,
+            "temperature": 0.7
         }
     return session['settings']
 
@@ -80,7 +66,7 @@ def get_settings():
 def initialize_system():
     global df, index, embeddings
     print("📂 Loading data...")
-    df = pd.read_csv("combined_APIs.csv 1.csv")
+    df = pd.read_csv("API Dataset 129.csv")
     df.fillna("", inplace=True)
     print("🔨 Building FAISS index...")
     index, embeddings = build_faiss_index(df)
@@ -239,9 +225,9 @@ No relevant API documentation found. Respond politely that you do not have suffi
 """
 
     data = {
-        "contents": [ {
+        "contents": [{
             "parts": [{"text": prompt}]
-        } ]
+        }]
     }
 
     response = requests.post(endpoint, headers=headers, json=data)
@@ -256,6 +242,7 @@ No relevant API documentation found. Respond politely that you do not have suffi
 
 # =========================================================================================================
 # Routes
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -319,9 +306,7 @@ def new_chat():
 @app.route('/settings', methods=['POST'])
 def update_settings():
     settings = get_settings()
-    print("settings", settings)
     data = request.json
-    print("data")
 
     if 'model' in data:
         settings['model'] = data['model']
@@ -342,18 +327,14 @@ def update_settings():
 @app.route('/ask', methods=['POST'])
 def ask():
     user_query = request.form['query']
-    print("user_query", user_query)
     if not user_query:
         return jsonify({'error': 'Please enter a query'})
 
     processed_query, user_language = process_user_query(user_query)
-    print("processed_query,user_language", processed_query, user_language)
     processed_query = preprocess_query(processed_query)
-    print("processed_query", processed_query)
 
     context = retrieve_relevant_context(processed_query)
     response = generate_journey_with_gemini(processed_query, context, user_language)
-    print("response", response)
 
     if user_language != 'english':
         response = translate_response(response, user_language)
@@ -369,4 +350,3 @@ initialize_system()
 
 if __name__ == '__main__':
     app.run(debug=True, port=9000, host='0.0.0.0')
-
